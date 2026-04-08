@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>技遇 — 登入</title>
+<meta name="theme-color" content="#3D9970"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="manifest" href="manifest.json"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--g:#3D9970;--gl:#E8F5EF;--bd:#EBEBEB;--t:#111;--t2:#888;}
+html,body{height:100%;background:#F5F5F5;font-family:'Plus Jakarta Sans',-apple-system,sans-serif;}
+#app{max-width:430px;margin:0 auto;min-height:100dvh;background:#fff;display:flex;flex-direction:column;}
+.wrap{flex:1;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px)+48px) 28px calc(env(safe-area-inset-bottom,0px)+32px);}
+.logo{font-family:'Instrument Serif',serif;font-size:32px;color:var(--t);margin-bottom:4px;}
+.logo i{font-style:italic;color:var(--g);}
+.sub{font-size:15px;color:var(--t2);margin-bottom:36px;line-height:1.5;}
+.tabs{display:flex;margin-bottom:26px;border-bottom:1.5px solid var(--bd);}
+.tab{flex:1;padding:12px 0;font-size:15px;font-weight:500;color:var(--t2);border:none;background:none;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-1.5px;}
+.tab.on{color:var(--g);border-bottom-color:var(--g);}
+.fg{margin-bottom:16px;}
+.fl{font-size:13px;font-weight:500;color:var(--t2);margin-bottom:7px;display:block;}
+.fi{width:100%;border:1.5px solid var(--bd);border-radius:13px;padding:13px 16px;font-family:inherit;font-size:15px;color:var(--t);outline:none;transition:border .15s;background:#fff;}
+.fi:focus{border-color:var(--g);}
+.forgot{font-size:13px;color:var(--g);text-align:right;display:block;margin-top:-8px;margin-bottom:16px;cursor:pointer;border:none;background:none;font-family:inherit;width:100%;}
+.btn{width:100%;padding:15px;border-radius:14px;background:var(--g);color:#fff;font-size:16px;font-weight:600;border:none;cursor:pointer;font-family:inherit;margin-top:6px;}
+.btn:disabled{opacity:.45;}
+.social{width:100%;padding:13px;border-radius:13px;border:1.5px solid var(--bd);background:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--t);}
+.div{display:flex;align-items:center;gap:12px;margin:20px 0;}
+.div-line{flex:1;height:1px;background:var(--bd);}
+.div-txt{font-size:13px;color:var(--t2);}
+.msg{border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:16px;display:none;}
+.msg.show{display:block;}
+.err{background:#FEE;color:#C0392B;}
+.ok{background:var(--gl);color:#2D7A55;}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.terms{font-size:12px;color:var(--t2);text-align:center;margin-top:20px;line-height:1.6;}
+.terms a{color:var(--g);text-decoration:none;}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--g);border:none;background:none;cursor:pointer;font-family:inherit;margin-bottom:28px;padding:0;}
+.screen{display:none;}
+.screen.on{display:flex;flex-direction:column;flex:1;}
+.li-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;}
+.li-ava{width:72px;height:72px;border-radius:22px;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;}
+.li-name{font-family:'Instrument Serif',serif;font-size:24px;color:var(--t);margin-bottom:4px;}
+.li-email{font-size:14px;color:var(--t2);margin-bottom:32px;}
+.btn-out{width:100%;padding:13px;border-radius:14px;border:1.5px solid var(--bd);background:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--t2);margin-top:12px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ① 登入/註冊 -->
+  <div class="wrap screen on" id="s-auth">
+    <div class="logo">技<i>遇</i></div>
+    <div class="sub">加入台灣最大技遇社群</div>
+    <div class="tabs">
+      <button class="tab on" onclick="switchTab('login')">登入</button>
+      <button class="tab" onclick="switchTab('signup')">註冊</button>
+    </div>
+    <div class="msg" id="auth-msg"></div>
+    <div class="fg"><label class="fl">電子信箱</label><input class="fi" type="email" id="email" placeholder="you@example.com" autocomplete="email"/></div>
+    <div class="fg" id="name-fg" style="display:none;"><label class="fl">你的名稱</label><input class="fi" type="text" id="uname" placeholder="例：林小明"/></div>
+    <div class="fg"><label class="fl">密碼</label><input class="fi" type="password" id="pwd" placeholder="至少 8 個字元" autocomplete="current-password"/></div>
+    <button class="forgot" id="forgot-link" onclick="goScreen('s-forgot')">忘記密碼？</button>
+    <button class="btn" id="submit-btn" onclick="handleSubmit()">登入</button>
+    <div class="div"><div class="div-line"></div><span class="div-txt">或</span><div class="div-line"></div></div>
+    <button class="social" onclick="loginGoogle()">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      使用 Google 登入
+    </button>
+    <div class="terms">繼續即表示你同意 <a href="privacy.html">隱私權政策</a> 與 <a href="terms.html">服務條款</a></div>
+  </div>
+
+  <!-- ② 忘記密碼 -->
+  <div class="wrap screen" id="s-forgot">
+    <button class="back-btn" onclick="goScreen('s-auth')">← 返回登入</button>
+    <div class="logo" style="font-size:26px;">重設<i>密碼</i></div>
+    <div class="sub" style="margin-bottom:24px;">輸入你的電子信箱，我們會寄送重設密碼連結。</div>
+    <div class="msg" id="forgot-msg"></div>
+    <div class="fg"><label class="fl">電子信箱</label><input class="fi" type="email" id="forgot-email" placeholder="you@example.com"/></div>
+    <button class="btn" id="reset-btn" onclick="sendReset()">寄送重設連結</button>
+  </div>
+
+  <!-- ③ 已登入 -->
+  <div class="screen" id="s-loggedin">
+    <div class="li-center">
+      <div class="li-ava" id="li-ava">😊</div>
+      <div class="li-name" id="li-name">用戶</div>
+      <div class="li-email" id="li-email"></div>
+      <button class="btn" onclick="window.location.href='app.html'">進入 APP →</button>
+      <button class="btn-out" onclick="signOut()">登出</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL='https://your-project.supabase.co';
+const SUPABASE_KEY='your-anon-public-key';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let mode='login';
+
+window.addEventListener('DOMContentLoaded',async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session)showLoggedIn(session.user);
+  sb.auth.onAuthStateChange((_,s)=>{if(s)showLoggedIn(s.user);});
+});
+
+function goScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('on');s.style.display='';});
+  document.getElementById(id).classList.add('on');
+}
+
+function switchTab(t){
+  mode=t;
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',(i===0&&t==='login')||(i===1&&t==='signup')));
+  document.getElementById('name-fg').style.display=t==='signup'?'block':'none';
+  document.getElementById('forgot-link').style.display=t==='login'?'block':'none';
+  document.getElementById('submit-btn').textContent=t==='login'?'登入':'建立帳號';
+  setMsg('auth-msg','','');
+}
+
+async function handleSubmit(){
+  const email=document.getElementById('email').value.trim();
+  const pwd=document.getElementById('pwd').value;
+  const name=document.getElementById('uname').value.trim();
+  const btn=document.getElementById('submit-btn');
+  if(!email||!pwd){setMsg('auth-msg','請填寫電子信箱和密碼','err');return;}
+  if(mode==='signup'&&pwd.length<8){setMsg('auth-msg','密碼至少需要 8 個字元','err');return;}
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>'+(mode==='login'?'登入中…':'建立中…');
+  try{
+    if(mode==='login'){
+      saveEmail();const{error}=await sb.auth.signInWithPassword({email,password:pwd});
+      if(error)throw error;
+    }else{
+      const{error}=await sb.auth.signUp({email,password:pwd,options:{data:{full_name:name||email.split('@')[0]}}});
+      if(error)throw error;
+      setMsg('auth-msg','確認信已寄出！請到信箱確認後，<a href="onboarding.html" style="color:var(--g)">點這裡完成設定</a>','ok');
+    }
+  }catch(e){setMsg('auth-msg',xlate(e.message),'err');}
+  finally{btn.disabled=false;btn.textContent=mode==='login'?'登入':'建立帳號';}
+}
+
+async function loginGoogle(){
+  const{error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+'/app.html'}});
+  if(error)setMsg('auth-msg',xlate(error.message),'err');
+}
+
+async function sendReset(){
+  const email=document.getElementById('forgot-email').value.trim();
+  const btn=document.getElementById('reset-btn');
+  if(!email){setMsg('forgot-msg','請輸入電子信箱','err');return;}
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>寄送中…';
+  const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/reset-password.html'});
+  btn.disabled=false;btn.textContent='寄送重設連結';
+  if(error){setMsg('forgot-msg',xlate(error.message),'err');return;}
+  setMsg('forgot-msg','重設連結已寄出！請檢查信箱（含垃圾郵件）','ok');
+  document.getElementById('forgot-email').value='';
+}
+
+function showLoggedIn(user){
+  goScreen('s-loggedin');
+  const name=user.user_metadata?.full_name||user.email.split('@')[0];
+  document.getElementById('li-ava').textContent=name[0].toUpperCase();
+  document.getElementById('li-name').textContent=name;
+  document.getElementById('li-email').textContent=user.email;
+}
+async function signOut(){await sb.auth.signOut();goScreen('s-auth');}
+
+function setMsg(id,msg,type){const e=document.getElementById(id);e.textContent=msg;e.className='msg'+(type?' '+type+' show':'');}
+// 記住上次 email
+window.addEventListener('DOMContentLoaded',()=>{
+  const saved=localStorage.getItem('last_email');
+  if(saved){const el=document.getElementById('email');if(el)el.value=saved;}
+});
+function saveEmail(){const el=document.getElementById('email');if(el&&el.value)localStorage.setItem('last_email',el.value);}
+function xlate(m){
+  if(m.includes('Invalid login'))return '電子信箱或密碼錯誤';
+  if(m.includes('Email not confirmed'))return '請先到信箱點擊確認連結';
+  if(m.includes('already registered'))return '這個電子信箱已經註冊過了';
+  if(m.includes('valid email'))return '請輸入有效的電子信箱';
+  return '發生錯誤，請稍後再試';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Enter')handleSubmit();});
+</script>
+<div id="toast" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:13px;padding:10px 20px;border-radius:100px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;"></div>
+<script>function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';clearTimeout(window._tt2);window._tt2=setTimeout(()=>t.style.opacity='0',2400);}</script>
+</body>
+</html>

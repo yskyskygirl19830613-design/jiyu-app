@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>升級 Premium — 技遇</title>
+<meta name="theme-color" content="#3D9970"/>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="manifest" href="manifest.json"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--g:#3D9970;--gl:#E8F5EF;--gd:#2D7A55;--t:#111;--t2:#888;--bd:#EBEBEB;--bg2:#F7F7F7;}
+html,body{min-height:100%;background:#F5F5F5;font-family:'Plus Jakarta Sans',-apple-system,sans-serif;}
+#app{max-width:430px;margin:0 auto;min-height:100dvh;background:#fff;display:flex;flex-direction:column;}
+.hdr{padding:calc(env(safe-area-inset-top,0px)+14px) 20px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--bd);}
+.back-btn{background:none;border:none;font-size:22px;color:var(--t2);cursor:pointer;padding:0;}
+.hdr-title{font-family:'Instrument Serif',serif;font-size:20px;color:var(--t);}
+.hdr-title i{font-style:italic;color:var(--g);}
+
+/* Hero */
+.hero{padding:28px 24px 20px;text-align:center;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--gl);color:var(--gd);font-size:12px;font-weight:600;padding:5px 14px;border-radius:100px;margin-bottom:14px;}
+.hero-title{font-family:'Instrument Serif',serif;font-size:28px;color:var(--t);margin-bottom:8px;line-height:1.2;}
+.hero-title i{font-style:italic;color:var(--g);}
+.hero-sub{font-size:15px;color:var(--t2);line-height:1.6;}
+
+/* Plan toggle */
+.plan-toggle{display:flex;background:var(--bg2);border-radius:12px;padding:4px;margin:20px 24px 0;}
+.toggle-btn{flex:1;padding:9px;border-radius:9px;border:none;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;background:transparent;color:var(--t2);transition:all .2s;}
+.toggle-btn.on{background:#fff;color:var(--t);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.save-badge{font-size:10px;font-weight:600;background:#FFF0E8;color:#B85A1E;padding:2px 6px;border-radius:100px;margin-left:4px;}
+
+/* Plan card */
+.plan-card{margin:16px 24px 0;border-radius:20px;overflow:hidden;border:2px solid var(--g);}
+.plan-top{background:var(--g);padding:20px 20px 16px;}
+.plan-name{font-size:13px;font-weight:600;color:rgba(255,255,255,.8);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;}
+.plan-price-row{display:flex;align-items:baseline;gap:4px;}
+.plan-price{font-family:'Instrument Serif',serif;font-size:42px;color:#fff;line-height:1;}
+.plan-unit{font-size:14px;color:rgba(255,255,255,.7);}
+.plan-orig{font-size:13px;color:rgba(255,255,255,.5);text-decoration:line-through;margin-left:8px;}
+.plan-desc{font-size:13px;color:rgba(255,255,255,.75);margin-top:6px;}
+.plan-features{background:#fff;padding:18px 20px;}
+.feat-item{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.feat-item:last-child{margin-bottom:0;}
+.feat-check{width:22px;height:22px;border-radius:50%;background:var(--gl);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;}
+.feat-text{font-size:14px;color:var(--t);}
+.feat-text span{font-size:12px;color:var(--g);font-weight:600;margin-left:4px;}
+
+/* Free plan */
+.free-card{margin:12px 24px 0;border:1px solid var(--bd);border-radius:16px;padding:16px 20px;}
+.free-title{font-size:14px;font-weight:500;color:var(--t);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.free-tag{font-size:11px;color:var(--t2);}
+.free-feat{font-size:13px;color:var(--t2);line-height:1.8;}
+
+/* CTA */
+.cta-wrap{padding:20px 24px;}
+.btn-cta{width:100%;padding:16px;border-radius:15px;background:var(--g);color:#fff;font-size:16px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:opacity .15s;}
+.btn-cta:active{opacity:.85;}
+.btn-cta:disabled{opacity:.5;cursor:not-allowed;}
+.cta-note{text-align:center;font-size:12px;color:var(--t2);margin-top:10px;line-height:1.6;}
+.cta-note a{color:var(--g);text-decoration:none;}
+
+/* Testimonials */
+.testimonials{padding:0 24px 24px;}
+.test-title{font-size:13px;font-weight:500;color:var(--t2);margin-bottom:12px;text-align:center;}
+.test-card{background:var(--bg2);border-radius:13px;padding:13px 14px;margin-bottom:8px;}
+.test-text{font-size:13px;color:var(--t);line-height:1.55;margin-bottom:6px;}
+.test-meta{font-size:11px;color:var(--t2);display:flex;align-items:center;justify-content:space-between;}
+.stars{color:#F5A623;font-size:11px;}
+
+/* FAQ */
+.faq{padding:0 24px calc(env(safe-area-inset-bottom,0px)+24px);}
+.faq-title{font-size:13px;font-weight:500;color:var(--t2);margin-bottom:12px;}
+.faq-item{border-bottom:1px solid var(--bd);padding:12px 0;}
+.faq-q{font-size:14px;font-weight:500;color:var(--t);margin-bottom:5px;}
+.faq-a{font-size:13px;color:var(--t2);line-height:1.6;}
+
+/* Toast */
+.toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+20px);left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:13px;padding:10px 20px;border-radius:100px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+
+/* Loading overlay */
+.loading-ov{position:fixed;inset:0;background:rgba(255,255,255,.9);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.loading-ov.show{display:flex;}
+.spinner{width:40px;height:40px;border:3px solid var(--gl);border-top-color:var(--g);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:15px;color:var(--t2);}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hdr">
+    <button class="back-btn" onclick="history.back()">‹</button>
+    <div class="hdr-title">升級 <i>Premium</i></div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">⭐ 技遇 Premium</div>
+    <div class="hero-title">解鎖全部功能<br>找到<i>更好的配對</i></div>
+    <div class="hero-sub">加入 Premium，無限申請交換、AI 智能配對、優先曝光，讓你的技能更快找到對的人。</div>
+    <div style="display:inline-flex;align-items:center;gap:6px;background:#FFF6E0;color:#9A6A00;font-size:12px;font-weight:600;padding:6px 14px;border-radius:100px;margin-top:10px;">🎁 前 7 天免費試用，不滿意可取消</div>
+  </div>
+
+  <!-- Plan toggle -->
+  <div class="plan-toggle">
+    <button class="toggle-btn on" id="btn-monthly" onclick="switchPlan('monthly')">月繳</button>
+    <button class="toggle-btn" id="btn-yearly" onclick="switchPlan('yearly')">年繳 <span class="save-badge">省 40%</span></button>
+  </div>
+
+  <!-- Premium plan -->
+  <div class="plan-card">
+    <div class="plan-top">
+      <div class="plan-name">Premium 方案</div>
+      <div class="plan-price-row">
+        <div class="plan-price" id="plan-price">$99</div>
+        <div class="plan-unit" id="plan-unit">/ 月</div>
+        <div class="plan-orig" id="plan-orig" style="display:none;">$99</div>
+      </div>
+      <div class="plan-desc" id="plan-desc">隨時可以取消，無綁約</div>
+    </div>
+    <div class="plan-features">
+      <div class="feat-item"><div class="feat-check">✓</div><div class="feat-text">無限發布技能 <span>（免費版限 2 個）</span></div></div>
+      <div class="feat-item"><div class="feat-check">✓</div><div class="feat-text">無限申請交換 <span>（免費版限 5 次/月）</span></div></div>
+      <div class="feat-item"><div class="feat-check">✓</div><div class="feat-text">AI 智能配對推薦</div></div>
+      <div class="feat-item"><div class="feat-check">✓</div><div class="feat-text">查看誰看過你的技能</div></div>
+      <div class="feat-item"><div class="feat-check">✓</div><div class="feat-text">優先出現搜尋結果</div></div>
+      <div class="feat-item"><div class="feat-check">✓</div><div class="feat-text">Premium 專屬徽章</div></div>
+      <div class="feat-item"><div class="feat-check">✓</div><div class="feat-text">優先客服支援</div></div>
+    </div>
+  </div>
+
+  <!-- Free plan comparison -->
+  <div class="free-card">
+    <div class="free-title">免費版 <span class="free-tag">目前方案</span></div>
+    <div class="free-feat">
+      發布 2 個技能 · 每月申請 5 次<br>
+      基本搜尋 · 一般訊息功能
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-wrap">
+    <button class="btn-cta" id="cta-btn" onclick="startCheckout()">
+      立即升級 Premium →
+    </button>
+    <div class="cta-note">
+      安全付款由 <a href="https://stripe.com" target="_blank">Stripe</a> 處理。
+      升級後可隨時在「我的 → 管理訂閱」取消，不會額外收費。
+      繼續即表示同意 <a href="terms.html">服務條款</a>。
+    </div>
+  </div>
+
+  <!-- Testimonials -->
+  <div class="testimonials">
+    <div class="test-title">用戶評價</div>
+    <div class="test-card">
+      <div class="test-text">"升級後馬上有人來找我交換 Figma 技能，AI 推薦的配對真的很準！"</div>
+      <div class="test-meta"><span>Mia Chen · 高雄</span><span class="stars">★★★★★</span></div>
+    </div>
+    <div class="test-card">
+      <div class="test-text">"優先曝光真的有用，發布技能的第一天就收到 3 個申請。"</div>
+      <div class="test-meta"><span>Jay Wu · 台中</span><span class="stars">★★★★★</span></div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq">
+    <div class="faq-title">常見問題</div>
+    <div class="faq-item">
+      <div class="faq-q">可以隨時取消嗎？</div>
+      <div class="faq-a">可以。到「我的 → 管理訂閱」點取消，下個計費週期前都可以繼續使用 Premium 功能。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">支援哪些付款方式？</div>
+      <div class="faq-a">信用卡、金融卡（Visa、Mastercard、JCB）、Apple Pay、Google Pay。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">年繳怎麼計算？</div>
+      <div class="faq-a">年繳每月只要 $59，一次付 $708，比月繳省 40%。中途取消不退款但可用到期日。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">升級後立即生效嗎？</div>
+      <div class="faq-a">是的，付款完成後 Premium 功能馬上開啟。</div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-ov" id="loading-ov">
+  <div class="spinner"></div>
+  <div class="loading-txt">跳轉到付款頁面…</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// ════════════════════════════════════════
+// ⚠️ 替換成你的設定
+const SUPABASE_URL = 'https://your-project.supabase.co';
+const SUPABASE_KEY = 'your-anon-public-key';
+
+// Stripe Price IDs（在 Stripe Dashboard 建立後填入）
+const STRIPE_MONTHLY_PRICE = 'price_monthly_id_here';
+const STRIPE_YEARLY_PRICE  = 'price_yearly_id_here';
+
+// 你的 Vercel 後端 URL（下面的 api/create-checkout-session）
+const API_BASE = 'https://your-app.vercel.app';
+// ════════════════════════════════════════
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentPlan = 'monthly';
+
+// ── 方案切換 ─────────────────────────────
+function switchPlan(plan) {
+  currentPlan = plan;
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('btn-' + plan).classList.add('on');
+
+  if (plan === 'monthly') {
+    document.getElementById('plan-price').textContent = '$99';
+    document.getElementById('plan-unit').textContent  = '/ 月';
+    document.getElementById('plan-orig').style.display = 'none';
+    document.getElementById('plan-desc').textContent  = '前 7 天免費試用，之後每月 $99，隨時可取消';
+    document.getElementById('cta-btn').textContent    = '立即升級 Premium →';
+  } else {
+    document.getElementById('plan-price').textContent = '$59';
+    document.getElementById('plan-unit').textContent  = '/ 月';
+    document.getElementById('plan-orig').textContent  = '$99';
+    document.getElementById('plan-orig').style.display = 'inline';
+    document.getElementById('plan-desc').textContent  = '每年 $708，省下 $480';
+    document.getElementById('cta-btn').textContent    = '立即升級（年繳省 40%）→';
+  }
+}
+
+// ── 開始付款流程 ─────────────────────────
+async function startCheckout() {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { window.location.href = 'login.html'; return; }
+
+  // 先檢查是否已訂閱
+  const { data: profile } = await sb.from('profiles')
+    .select('is_premium, premium_until')
+    .eq('id', user.id).single();
+
+  if (profile?.is_premium) {
+    showToast('你已經是 Premium 用戶！');
+    return;
+  }
+
+  document.getElementById('loading-ov').classList.add('show');
+  document.getElementById('cta-btn').disabled = true;
+
+  try {
+    const priceId = currentPlan === 'monthly'
+      ? STRIPE_MONTHLY_PRICE
+      : STRIPE_YEARLY_PRICE;
+
+    const res = await fetch(`${API_BASE}/api/create-checkout-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        priceId,
+        userId:   user.id,
+        email:    user.email,
+        successUrl: `${window.location.origin}/premium-success.html`,
+        cancelUrl:  window.location.href,
+      }),
+    });
+
+    const { url, error } = await res.json();
+    if (error) throw new Error(error);
+    window.location.href = url;  // 跳轉到 Stripe Checkout
+
+  } catch (err) {
+    document.getElementById('loading-ov').classList.remove('show');
+    document.getElementById('cta-btn').disabled = false;
+    showToast('付款連結建立失敗，請稍後再試');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// 初始化：檢查是否已登入
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) {
+    document.getElementById('cta-btn').textContent = '登入後升級 →';
+  } else {
+    const { data: profile } = await sb.from('profiles')
+      .select('is_premium').eq('id', user.id).single();
+    if (profile?.is_premium) {
+      document.getElementById('cta-btn').textContent = '已是 Premium 用戶 ✓';
+      document.getElementById('cta-btn').disabled = true;
+    }
+  }
+});
+</script>
+</body>
+</html>

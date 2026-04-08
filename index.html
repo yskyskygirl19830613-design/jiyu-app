@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>技遇 JiYu</title>
+<meta name="description" content="找技能，換技能。在你附近找到想學的東西，用你的技遇。"/>
+<meta name="theme-color" content="#3D9970"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="技遇"/>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="icon" href="apple-touch-icon.png"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--green:#3D9970;--green-light:#E8F5EF;--green-dark:#2D7A55;--text:#111;--text2:#888;--border:#EBEBEB;--bg:#fff;--bg2:#F7F7F7;}
+html,body{height:100%;background:#F2F0EB;font-family:'Plus Jakarta Sans',-apple-system,sans-serif;}
+#app{max-width:430px;margin:0 auto;height:100dvh;background:#fff;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+
+/* screens */
+.screen{display:none;flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:72px;}
+.screen.active{display:block;}
+.screen::-webkit-scrollbar{display:none;}
+
+/* topbar */
+.tb{padding:env(safe-area-inset-top,16px) 20px 10px;padding-top:calc(env(safe-area-inset-top,0px) + 16px);}
+.tb-title{font-family:'Instrument Serif',serif;font-size:26px;color:var(--text);line-height:1.2;}
+.tb-title i{font-style:italic;color:var(--green);}
+.tb-row{display:flex;align-items:center;justify-content:space-between;}
+.ava{width:36px;height:36px;border-radius:11px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--green-dark);border:none;cursor:pointer;}
+
+/* search */
+.srch{margin:0 20px 12px;display:flex;align-items:center;gap:9px;background:var(--bg2);border-radius:13px;padding:10px 14px;color:var(--text2);font-size:14px;}
+
+/* city bar */
+.city-bar{padding:0 20px 12px;display:flex;align-items:center;gap:10px;}
+.city-pill{display:flex;align-items:center;gap:6px;background:var(--bg2);border-radius:11px;padding:8px 13px;border:none;font-family:inherit;cursor:pointer;}
+.city-pill span{font-size:14px;font-weight:500;color:var(--text);}
+.city-arrow{font-size:10px;color:var(--text2);}
+.nearby-btn{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:500;color:var(--green);border:none;background:none;cursor:pointer;font-family:inherit;}
+
+/* chips */
+.chips{display:flex;gap:7px;padding:0 20px 14px;overflow-x:auto;scrollbar-width:none;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{border-radius:100px;padding:7px 15px;font-size:13px;font-weight:500;border:1.5px solid var(--border);white-space:nowrap;cursor:pointer;background:var(--bg);color:var(--text2);transition:all .15s;font-family:inherit;}
+.chip.on{background:var(--green);border-color:var(--green);color:#fff;}
+
+/* count row */
+.count-row{padding:0 20px 10px;display:flex;align-items:center;justify-content:space-between;}
+.count-txt{font-size:12px;color:var(--text2);font-weight:500;}
+
+/* skill grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:0 20px 20px;}
+.sc{background:var(--bg);border:1px solid var(--border);border-radius:17px;overflow:hidden;cursor:pointer;transition:transform .12s;-webkit-tap-highlight-color:transparent;}
+.sc:active{transform:scale(.97);}
+.sc-img{height:82px;display:flex;align-items:center;justify-content:center;font-size:32px;}
+.sc-body{padding:9px 11px 12px;}
+.sc-name{font-family:'Instrument Serif',serif;font-size:15px;color:var(--text);margin-bottom:2px;}
+.sc-user{font-size:11px;color:#BBB;margin-bottom:6px;}
+.tag{font-size:11px;font-weight:500;padding:3px 9px;border-radius:100px;display:inline-block;}
+.tg{background:#E8F5EF;color:#2D7A55;}
+.to{background:#FFF0E8;color:#B85A1E;}
+.tb2{background:#EAF0FF;color:#2D53C5;}
+.ty{background:#FFF6E0;color:#9A6A00;}
+.tp{background:#FDE8F3;color:#A0306A;}
+
+/* section label */
+.slbl{padding:0 20px 10px;font-size:11px;font-weight:600;color:#BBB;letter-spacing:.07em;text-transform:uppercase;}
+
+/* featured */
+.feat{margin:4px 20px 16px;border-radius:18px;padding:16px;display:flex;align-items:center;gap:14px;background:var(--green-light);border:1px solid #C8E8D8;}
+.feat-em{font-size:38px;}
+.feat-lbl{font-size:10px;font-weight:600;color:var(--green);letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px;}
+.feat-name{font-family:'Instrument Serif',serif;font-size:17px;color:var(--text);}
+.feat-sub{font-size:12px;color:#6B9B82;margin-top:2px;}
+.btn-sm{background:var(--green);color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;}
+
+/* MAP */
+#map{width:100%;height:100%;position:absolute;top:0;left:0;}
+.map-screen{display:none;flex:1;position:relative;}
+.map-screen.active{display:flex;flex-direction:column;}
+.map-top{position:absolute;top:calc(env(safe-area-inset-top,0px)+10px);left:0;right:0;padding:0 14px;z-index:999;display:flex;flex-direction:column;gap:7px;}
+.map-srch{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.97);border-radius:14px;padding:10px 14px;box-shadow:0 2px 10px rgba(0,0,0,.1);}
+.map-srch input{border:none;background:transparent;font-family:inherit;font-size:14px;color:var(--text);outline:none;flex:1;}
+.map-srch input::placeholder{color:#AAA;}
+.map-chips{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.map-chips::-webkit-scrollbar{display:none;}
+.mchip{border-radius:100px;padding:7px 14px;font-size:13px;font-weight:500;border:none;white-space:nowrap;cursor:pointer;font-family:inherit;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+.mchip.off{background:rgba(255,255,255,.95);color:#555;}
+.mchip.on{background:var(--green);color:#fff;}
+.map-count{position:absolute;top:calc(env(safe-area-inset-top,0px)+100px);left:14px;z-index:999;background:rgba(255,255,255,.97);border-radius:12px;padding:8px 12px;box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.map-count-n{font-family:'Instrument Serif',serif;font-size:18px;color:var(--text);}
+.map-count-l{font-size:11px;color:var(--text2);}
+.map-locate{position:absolute;top:calc(env(safe-area-inset-top,0px)+100px);right:14px;z-index:999;width:42px;height:42px;background:rgba(255,255,255,.97);border-radius:12px;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.1);font-size:18px;}
+.nearby-strip{position:absolute;bottom:0;left:0;right:0;z-index:999;background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,.08);padding-bottom:calc(env(safe-area-inset-bottom,0px)+4px);}
+.strip-handle{width:36px;height:4px;background:#E0E0E0;border-radius:2px;margin:12px auto 10px;}
+.strip-hdr{padding:0 20px 10px;display:flex;align-items:center;justify-content:space-between;}
+.strip-title{font-family:'Instrument Serif',serif;font-size:16px;color:var(--text);}
+.strip-sub{font-size:12px;color:var(--text2);}
+.strip-scroll{display:flex;gap:11px;padding:0 20px 16px;overflow-x:auto;scrollbar-width:none;}
+.strip-scroll::-webkit-scrollbar{display:none;}
+.nc{flex-shrink:0;width:150px;background:#fff;border:1px solid var(--border);border-radius:15px;overflow:hidden;cursor:pointer;}
+.nc.sel{border-color:var(--green);box-shadow:0 0 0 2px #3D997022;}
+.nc-img{height:70px;display:flex;align-items:center;justify-content:center;font-size:28px;}
+.nc-body{padding:8px 10px 11px;}
+.nc-name{font-family:'Instrument Serif',serif;font-size:13px;color:var(--text);margin-bottom:2px;}
+.nc-dist{font-size:11px;color:var(--green);font-weight:500;margin-bottom:4px;}
+
+/* detail sheet */
+.detail-overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:1000;display:none;align-items:flex-end;}
+.detail-overlay.show{display:flex;}
+.detail-sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;padding-bottom:calc(env(safe-area-inset-bottom,0px)+16px);}
+.ds-handle{width:36px;height:4px;background:#E0E0E0;border-radius:2px;margin:12px auto 14px;}
+.ds-head{padding:0 20px 14px;display:flex;gap:13px;align-items:center;border-bottom:1px solid #F5F5F5;}
+.ds-em{width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.ds-title{font-family:'Instrument Serif',serif;font-size:18px;color:var(--text);}
+.ds-sub{font-size:12px;color:var(--text2);margin-top:3px;}
+.close-x{margin-left:auto;width:28px;height:28px;border-radius:50%;background:#F5F5F5;border:none;cursor:pointer;font-size:13px;color:#888;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ds-rows{padding:14px 20px;}
+.ds-row{display:flex;align-items:center;gap:11px;margin-bottom:11px;}
+.ds-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--bg2);}
+.ds-lbl{font-size:13px;color:var(--text2);}
+.ds-val{font-size:13px;font-weight:500;color:var(--text);margin-left:auto;}
+.ds-btns{display:flex;gap:10px;padding:0 20px;}
+.btn-outline{flex:1;padding:13px;border-radius:13px;border:1.5px solid var(--border);background:#fff;font-size:14px;font-weight:600;color:#555;cursor:pointer;font-family:inherit;}
+.btn-solid{flex:1;padding:13px;border-radius:13px;border:none;background:var(--green);font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit;}
+.btn-nav{flex:1;padding:13px;border-radius:13px;border:1.5px solid var(--green-light);background:var(--green-light);font-size:14px;font-weight:600;color:var(--green);cursor:pointer;font-family:inherit;}
+
+/* matches */
+.mc{margin:0 20px 10px;border:1px solid var(--border);border-radius:15px;padding:13px;display:flex;gap:11px;align-items:center;cursor:pointer;background:#fff;}
+.mc-ava{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.mc-name{font-weight:600;font-size:14px;color:var(--text);margin-bottom:3px;display:flex;align-items:center;gap:6px;}
+.new-b{background:var(--green);color:#fff;border-radius:100px;font-size:10px;padding:2px 7px;}
+.mc-desc{font-size:12px;color:#AAA;}
+.sw{color:#DDD;margin:0 3px;}
+.done-tag{font-size:11px;background:var(--green-light);color:var(--green-dark);padding:3px 10px;border-radius:100px;}
+
+/* chat */
+.ci{display:flex;gap:12px;align-items:center;padding:13px 20px;border-bottom:1px solid #F5F5F5;cursor:pointer;}
+.ci-ava{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.ci-name{font-weight:600;font-size:14px;color:var(--text);margin-bottom:3px;}
+.ci-preview{font-size:12px;color:#BBB;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+.ci-time{font-size:11px;font-weight:600;color:var(--green);}
+.ci-dot{width:8px;height:8px;border-radius:50%;background:var(--green);margin-top:4px;margin-left:auto;}
+
+/* chat room */
+.chat-hdr{padding:calc(env(safe-area-inset-top,0px)+10px) 20px 12px;border-bottom:1px solid #F5F5F5;display:flex;align-items:center;gap:11px;flex-shrink:0;}
+.chat-back{background:none;border:none;font-size:22px;color:#888;cursor:pointer;padding:0;line-height:1;}
+.chat-ava{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.chat-name{font-weight:600;font-size:14px;color:var(--text);}
+.chat-skill{font-size:11px;color:var(--text2);}
+.bubbles{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px;}
+.bub{max-width:74%;padding:10px 13px;font-size:13px;line-height:1.55;}
+.bub.them{background:#F4F4F4;border-radius:16px 16px 16px 4px;align-self:flex-start;color:var(--text);}
+.bub.me{background:var(--green);color:#fff;border-radius:16px 16px 4px 16px;align-self:flex-end;}
+.chat-inp{padding:10px 16px calc(env(safe-area-inset-bottom,0px)+10px);border-top:1px solid #F0F0F0;display:flex;gap:10px;align-items:center;flex-shrink:0;background:#fff;}
+.ci-box{flex:1;background:var(--bg2);border:none;border-radius:12px;padding:10px 14px;font-family:inherit;font-size:14px;outline:none;}
+.send-b{width:38px;height:38px;border-radius:12px;background:var(--green);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:16px;}
+
+/* post */
+.pf{padding:0 20px 20px;}
+.fg{margin-bottom:17px;}
+.fl{font-size:13px;font-weight:500;color:#555;margin-bottom:7px;display:block;}
+.fi{width:100%;border:1.5px solid var(--border);border-radius:13px;padding:11px 14px;font-family:inherit;font-size:14px;background:#fff;color:var(--text);resize:none;outline:none;transition:border .15s;}
+.fi:focus{border-color:var(--green);}
+.eg{display:flex;gap:8px;flex-wrap:wrap;}
+.ep{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;background:#fff;transition:all .15s;}
+.ep.sel{border-color:var(--green);background:var(--green-light);}
+.mrow{display:flex;gap:8px;}
+.mc2{border-radius:100px;padding:7px 15px;font-size:13px;font-weight:500;border:1.5px solid var(--border);cursor:pointer;background:#fff;color:#666;font-family:inherit;}
+.mc2.on{background:var(--green);border-color:var(--green);color:#fff;}
+.btn-post{width:100%;padding:14px;border-radius:14px;background:var(--green);color:#fff;font-size:15px;font-weight:600;border:none;cursor:pointer;font-family:inherit;margin-top:4px;}
+
+/* profile */
+.prof-h{padding:calc(env(safe-area-inset-top,0px)+16px) 20px 14px;border-bottom:1px solid #F5F5F5;display:flex;gap:14px;align-items:flex-start;}
+.prof-ava{width:58px;height:58px;border-radius:18px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:var(--green-dark);flex-shrink:0;}
+.prof-name{font-family:'Instrument Serif',serif;font-size:20px;color:var(--text);}
+.prof-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.stat-row{display:flex;gap:18px;margin-top:9px;}
+.stat-n{font-family:'Instrument Serif',serif;font-size:20px;color:var(--green);}
+.stat-l{font-size:10px;color:var(--text2);}
+.ms{margin:0 20px 10px;border:1px solid var(--border);border-radius:14px;padding:12px;}
+.ms-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.ms-name{font-family:'Instrument Serif',serif;font-size:15px;color:var(--text);}
+.ms-live{font-size:11px;font-weight:500;background:var(--green-light);color:var(--green-dark);padding:3px 9px;border-radius:100px;}
+.rv{margin:0 20px 10px;border:1px solid var(--border);border-radius:13px;padding:12px;}
+.rv-txt{font-size:13px;color:#333;line-height:1.55;margin-bottom:6px;}
+.stars{color:#F5A623;font-size:12px;}
+
+/* city modal */
+.city-modal{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:flex-end;}
+.city-modal.show{display:flex;}
+.city-sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;max-height:80%;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px);}
+.city-hdl{width:36px;height:4px;background:#DDD;border-radius:2px;margin:12px auto 4px;}
+.city-t{font-family:'Instrument Serif',serif;font-size:20px;color:var(--text);padding:8px 20px 14px;border-bottom:1px solid #F0F0F0;}
+.city-srch{margin:12px 20px;display:flex;align-items:center;gap:9px;background:var(--bg2);border-radius:12px;padding:10px 14px;color:var(--text2);font-size:14px;}
+.city-list{overflow-y:auto;}
+.city-slbl{font-size:11px;font-weight:600;color:#AAA;letter-spacing:.06em;text-transform:uppercase;padding:10px 20px 6px;}
+.city-item{display:flex;align-items:center;justify-content:space-between;padding:13px 20px;border-bottom:1px solid #F8F8F8;cursor:pointer;}
+.city-item:active{background:var(--bg2);}
+.city-il{display:flex;align-items:center;gap:12px;}
+.city-ico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--bg2);}
+.city-nm{font-weight:500;font-size:15px;color:var(--text);}
+.city-cnt{font-size:12px;color:var(--text2);}
+.city-ck{color:var(--green);font-size:16px;}
+
+/* bottom nav */
+.bnav{height:calc(56px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:#fff;border-top:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-around;flex-shrink:0;}
+.ni{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 14px;border:none;background:transparent;}
+.ni span{font-size:10px;font-weight:500;color:#BBB;}
+.ni.on span{color:var(--green);}
+.ni svg{display:block;}
+.ni.on svg *{stroke:var(--green);}
+.ni svg *{stroke:#CCC;}
+
+/* toast */
+.toast{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:13px;padding:10px 18px;border-radius:100px;z-index:3000;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+
+/* leaflet custom pin */
+.skill-pin{background:#fff;border-radius:20px;padding:4px 9px 4px 5px;display:flex;align-items:center;gap:4px;box-shadow:0 2px 8px rgba(0,0,0,.14);border:1.5px solid var(--green);white-space:nowrap;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:#111;cursor:pointer;}
+.cluster-pin{background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;border:3px solid #fff;box-shadow:0 2px 10px rgba(61,153,112,.4);}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- BROWSE -->
+  <div id="s-browse" class="screen active">
+    <div class="tb">
+      <div class="tb-row">
+        <div class="tb-title">技<i>遇</i></div>
+        <button class="ava">林</button>
+      </div>
+    </div>
+    <div class="city-bar">
+      <button class="city-pill" onclick="showCity()">
+        <span style="font-size:14px;">📍</span>
+        <span id="city-lbl">高雄市</span>
+        <span class="city-arrow">▾</span>
+      </button>
+      <button class="nearby-btn" onclick="locateMe()">
+        <span>⊙</span> 附近
+      </button>
+    </div>
+    <div class="srch">
+      <span style="font-size:15px;">🔍</span>
+      搜尋技能或使用者…
+    </div>
+    <div class="chips">
+      <div class="chip on" onclick="fchip(this,'全部')">全部</div>
+      <div class="chip" onclick="fchip(this,'設計')">設計</div>
+      <div class="chip" onclick="fchip(this,'語言')">語言</div>
+      <div class="chip" onclick="fchip(this,'音樂')">音樂</div>
+      <div class="chip" onclick="fchip(this,'程式')">程式</div>
+      <div class="chip" onclick="fchip(this,'料理')">料理</div>
+      <div class="chip" onclick="fchip(this,'攝影')">攝影</div>
+    </div>
+    <div class="count-row">
+      <span class="count-txt" id="skill-count">高雄市 · 24 個技能</span>
+      <span style="font-size:12px;color:var(--green);font-weight:500;cursor:pointer;">排序 ↕</span>
+    </div>
+    <div class="feat">
+      <span class="feat-em">🎸</span>
+      <div style="flex:1;">
+        <div class="feat-lbl">本週精選</div>
+        <div class="feat-name">木吉他入門教學</div>
+        <div class="feat-sub">Alex · 想換：日文會話</div>
+      </div>
+      <button class="btn-sm" onclick="showToast('申請已送出！')">申請</button>
+    </div>
+    <div class="slbl">最新上架</div>
+    <div class="grid">
+      <div class="sc" onclick="openDetail(0)"><div class="sc-img" style="background:#F0FAF5;">🎨</div><div class="sc-body"><div class="sc-name">Figma 設計</div><div class="sc-user">Mia Chen · 苓雅</div><div class="tag tg">換：英文寫作</div></div></div>
+      <div class="sc" onclick="openDetail(1)"><div class="sc-img" style="background:#FFF5F0;">🍜</div><div class="sc-body"><div class="sc-name">義式料理</div><div class="sc-user">Marco L. · 前金</div><div class="tag to">換：程式教學</div></div></div>
+      <div class="sc" onclick="openDetail(2)"><div class="sc-img" style="background:#EFF2FF;">💻</div><div class="sc-body"><div class="sc-name">Python 基礎</div><div class="sc-user">Jay Wu · 三民</div><div class="tag tb2">換：瑜珈</div></div></div>
+      <div class="sc" onclick="openDetail(3)"><div class="sc-img" style="background:#FFFBF0;">🌏</div><div class="sc-body"><div class="sc-name">日文 N3</div><div class="sc-user">Yuki T. · 新興</div><div class="tag ty">換：攝影</div></div></div>
+      <div class="sc" onclick="openDetail(4)"><div class="sc-img" style="background:#FDE8F3;">📷</div><div class="sc-body"><div class="sc-name">人像攝影</div><div class="sc-user">Sara K. · 苓雅</div><div class="tag tp">換：韓文</div></div></div>
+      <div class="sc" onclick="openDetail(5)"><div class="sc-img" style="background:#F0FAF5;">🧘</div><div class="sc-body"><div class="sc-name">瑜珈冥想</div><div class="sc-user">Lena H. · 鹽埕</div><div class="tag to">換：UI設計</div></div></div>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div id="s-map" class="map-screen">
+    <div id="map"></div>
+    <div class="map-top">
+      <div class="map-srch">
+        <span style="font-size:14px;color:#AAA;">🔍</span>
+        <input type="text" placeholder="搜尋附近的技能…" id="map-search"/>
+      </div>
+      <div class="map-chips">
+        <div class="mchip on" onclick="mfchip(this)">全部</div>
+        <div class="mchip off" onclick="mfchip(this)">設計</div>
+        <div class="mchip off" onclick="mfchip(this)">語言</div>
+        <div class="mchip off" onclick="mfchip(this)">音樂</div>
+        <div class="mchip off" onclick="mfchip(this)">程式</div>
+        <div class="mchip off" onclick="mfchip(this)">料理</div>
+      </div>
+    </div>
+    <div class="map-count"><div class="map-count-n">24</div><div class="map-count-l">附近技能</div></div>
+    <button class="map-locate" onclick="locateMe()">📍</button>
+    <div class="nearby-strip">
+      <div class="strip-handle"></div>
+      <div class="strip-hdr"><span class="strip-title">附近的技能</span><span class="strip-sub">高雄市 · 24 個</span></div>
+      <div class="strip-scroll">
+        <div class="nc sel" onclick="openDetail(0)"><div class="nc-img" style="background:#F0FAF5;">🎨</div><div class="nc-body"><div class="nc-name">Figma 設計</div><div class="nc-dist">📍 350 公尺</div><div class="tag tg" style="font-size:10px;">換：英文寫作</div></div></div>
+        <div class="nc" onclick="openDetail(1)"><div class="nc-img" style="background:#FFF5F0;">🍜</div><div class="nc-body"><div class="nc-name">義式料理</div><div class="nc-dist">📍 580 公尺</div><div class="tag to" style="font-size:10px;">換：程式教學</div></div></div>
+        <div class="nc" onclick="openDetail(2)"><div class="nc-img" style="background:#EFF2FF;">💻</div><div class="nc-body"><div class="nc-name">Python 基礎</div><div class="nc-dist">📍 1.2 公里</div><div class="tag tb2" style="font-size:10px;">換：瑜珈</div></div></div>
+        <div class="nc" onclick="openDetail(3)"><div class="nc-img" style="background:#FFFBF0;">🌏</div><div class="nc-body"><div class="nc-name">日文 N3</div><div class="nc-dist">📍 2.1 公里</div><div class="tag ty" style="font-size:10px;">換：攝影</div></div></div>
+        <div class="nc" onclick="openDetail(4)"><div class="nc-img" style="background:#FDE8F3;">📷</div><div class="nc-body"><div class="nc-name">人像攝影</div><div class="nc-dist">📍 1.8 公里</div><div class="tag tp" style="font-size:10px;">換：韓文</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MATCHES -->
+  <div id="s-matches" class="screen">
+    <div class="tb"><div class="tb-row"><div class="tb-title">交換<i>配對</i></div><span style="font-size:12px;color:#AAA;">3 個新通知</span></div></div>
+    <div class="slbl">等待回應</div>
+    <div class="mc"><div class="mc-ava" style="background:#F0FAF5;">🎨</div><div style="flex:1;"><div class="mc-name">Mia Chen <span class="new-b">新</span></div><div class="mc-desc">Python 基礎 <span class="sw">⇄</span> Figma 設計</div></div><span style="color:#DDD;">›</span></div>
+    <div class="mc"><div class="mc-ava" style="background:#FFFBF0;">🌏</div><div style="flex:1;"><div class="mc-name">Yuki T. <span class="new-b">新</span></div><div class="mc-desc">攝影教學 <span class="sw">⇄</span> 日文 N3</div></div><span style="color:#DDD;">›</span></div>
+    <div class="slbl" style="padding-top:8px;">進行中</div>
+    <div class="mc"><div class="mc-ava" style="background:#FFF5F0;">🍜</div><div style="flex:1;"><div class="mc-name">Marco L.</div><div class="mc-desc">義式料理 <span class="sw">⇄</span> Python 基礎</div></div><span style="color:#DDD;">›</span></div>
+    <div class="slbl" style="padding-top:8px;">已完成</div>
+    <div class="mc" style="opacity:.45;"><div class="mc-ava" style="background:#F0FAF5;">🧘</div><div style="flex:1;"><div class="mc-name">Lena H.</div><div class="mc-desc">瑜珈冥想 <span class="sw">⇄</span> Figma 設計</div></div><span class="done-tag">完成</span></div>
+  </div>
+
+  <!-- CHAT LIST -->
+  <div id="s-chat" class="screen">
+    <div class="tb"><div class="tb-title"><i>訊息</i></div></div>
+    <div class="ci" onclick="goTo('s-chatroom')"><div class="ci-ava" style="background:#F0FAF5;">🎨</div><div style="flex:1;"><div class="ci-name">Mia Chen</div><div class="ci-preview">好啊！我下週三下午有空，你呢？</div></div><div style="text-align:right;flex-shrink:0;"><div class="ci-time">10:32</div><div class="ci-dot"></div></div></div>
+    <div class="ci" onclick="goTo('s-chatroom')"><div class="ci-ava" style="background:#FFFBF0;">🌏</div><div style="flex:1;"><div class="ci-name">Yuki T.</div><div class="ci-preview">你的吉他教學影片我有看過，很棒！</div></div><div style="text-align:right;flex-shrink:0;"><div class="ci-time" style="color:#BBB;">昨天</div><div class="ci-dot"></div></div></div>
+    <div class="ci"><div class="ci-ava" style="background:#FFF5F0;">🍜</div><div style="flex:1;"><div class="ci-name">Marco L.</div><div class="ci-preview">這禮拜的課很充實，謝謝你！</div></div><div style="font-size:11px;color:#CCC;flex-shrink:0;">週一</div></div>
+  </div>
+
+  <!-- CHAT ROOM -->
+  <div id="s-chatroom" style="display:none;flex:1;flex-direction:column;overflow:hidden;padding-bottom:0;">
+    <div class="chat-hdr">
+      <button class="chat-back" onclick="goTo('s-chat')">‹</button>
+      <div class="chat-ava" style="background:#F0FAF5;">🎨</div>
+      <div><div class="chat-name">Mia Chen</div><div class="chat-skill">Figma 設計 ⇄ Python 基礎</div></div>
+    </div>
+    <div class="bubbles">
+      <div class="bub them">嗨！我看到你的 Python 教學，想跟你交換 Figma 設計課，你有興趣嗎？</div>
+      <div class="bub me">有啊！我正好想學 Figma，你的作品集我也看過，很厲害！</div>
+      <div class="bub them">太好了 🎉 那我們要怎麼安排上課時間呢？</div>
+      <div class="bub me">我週二、四晚上比較有空，你呢？</div>
+      <div class="bub them">好啊！我下週三下午有空，你呢？</div>
+    </div>
+    <div class="chat-inp">
+      <input class="ci-box" type="text" placeholder="輸入訊息…"/>
+      <button class="send-b">➤</button>
+    </div>
+  </div>
+
+  <!-- POST -->
+  <div id="s-post" class="screen">
+    <div class="tb"><div class="tb-title">發布<i>技能</i></div></div>
+    <div class="pf">
+      <div class="fg"><label class="fl">選個 Emoji</label><div class="eg"><div class="ep sel" onclick="pickE(this)">🎨</div><div class="ep" onclick="pickE(this)">🎸</div><div class="ep" onclick="pickE(this)">💻</div><div class="ep" onclick="pickE(this)">📷</div><div class="ep" onclick="pickE(this)">🍜</div><div class="ep" onclick="pickE(this)">🌏</div><div class="ep" onclick="pickE(this)">🧘</div><div class="ep" onclick="pickE(this)">✍️</div></div></div>
+      <div class="fg"><label class="fl">技能名稱</label><input class="fi" type="text" placeholder="例：Figma UI 設計教學"/></div>
+      <div class="fg"><label class="fl">簡短介紹</label><textarea class="fi" rows="3" placeholder="你能教什麼？適合什麼程度？"></textarea></div>
+      <div class="fg"><label class="fl">所在城市</label><button class="city-pill" style="width:100%;justify-content:flex-start;border:1.5px solid var(--border);border-radius:13px;padding:11px 14px;background:#fff;" onclick="showCity()"><span style="font-size:14px;">📍</span><span id="form-city">高雄市</span><span class="city-arrow" style="margin-left:auto;">▾</span></button></div>
+      <div class="fg"><label class="fl">想換什麼技能？</label><input class="fi" type="text" placeholder="例：日文會話、烹飪…"/></div>
+      <div class="fg"><label class="fl">上課方式</label><div class="mrow"><div class="mc2 on" onclick="pickM(this)">線上</div><div class="mc2" onclick="pickM(this)">面對面</div><div class="mc2" onclick="pickM(this)">都可以</div></div></div>
+      <button class="btn-post" onclick="showToast('技能已成功發布！🎉')">發布技能</button>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="s-profile" class="screen">
+    <div class="prof-h">
+      <div class="prof-ava">林</div>
+      <div style="flex:1;">
+        <div class="prof-name">林小明</div>
+        <div class="prof-sub">📍 高雄市 · 加入 3 個月</div>
+        <div class="stat-row">
+          <div><div class="stat-n">4</div><div class="stat-l">交換次數</div></div>
+          <div><div class="stat-n">4.9</div><div class="stat-l">評分</div></div>
+          <div><div class="stat-n">2</div><div class="stat-l">技能上架</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="slbl" style="padding-top:14px;">我的技能</div>
+    <div class="ms"><div class="ms-h"><span class="ms-name">🎸 木吉他入門</span><span class="ms-live">上架中</span></div><div style="font-size:12px;color:#AAA;">想換：日文會話 · 3 個申請</div></div>
+    <div class="ms"><div class="ms-h"><span class="ms-name">💻 Python 基礎</span><span class="ms-live">上架中</span></div><div style="font-size:12px;color:#AAA;">想換：設計技能 · 1 個申請</div></div>
+    <div class="slbl" style="padding-top:8px;">評價</div>
+    <div class="rv"><div class="rv-txt">"小明教吉他超有耐心，幾堂課就能彈完整首歌！"</div><div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:11px;color:#AAA;">Yuki T. · 2 週前</span><span class="stars">★★★★★</span></div></div>
+    <div class="rv"><div class="rv-txt">"Python 解說清楚，還準備了練習題，很用心。"</div><div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:11px;color:#AAA;">Marco L. · 1 個月前</span><span class="stars">★★★★★</span></div></div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bnav" id="bnav">
+    <button class="ni on" id="ni-browse" onclick="goTo('s-browse')">
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>瀏覽</span>
+    </button>
+    <button class="ni" id="ni-map" onclick="goTo('s-map')">
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      <span>地圖</span>
+    </button>
+    <button class="ni" id="ni-matches" onclick="goTo('s-matches')">
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3"/></svg>
+      <span>配對</span>
+    </button>
+    <button class="ni" id="ni-chat" onclick="goTo('s-chat')">
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>訊息</span>
+    </button>
+    <button class="ni" id="ni-profile" onclick="goTo('s-profile')">
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>我的</span>
+    </button>
+  </nav>
+
+  <!-- DETAIL OVERLAY -->
+  <div class="detail-overlay" id="detail-overlay" onclick="closeDetail(event)">
+    <div class="detail-sheet" onclick="event.stopPropagation()">
+      <div class="ds-handle"></div>
+      <div class="ds-head">
+        <div class="ds-em" id="ds-em" style="background:#F0FAF5;">🎨</div>
+        <div style="flex:1;">
+          <div class="ds-title" id="ds-title">Figma 設計教學</div>
+          <div class="ds-sub" id="ds-sub">Mia Chen · ★ 4.9 · 苓雅區</div>
+        </div>
+        <button class="close-x" onclick="closeDetail()">✕</button>
+      </div>
+      <div class="ds-rows">
+        <div class="ds-row"><div class="ds-icon">🔄</div><div class="ds-lbl">想換技能</div><div class="ds-val" id="ds-want">英文寫作</div></div>
+        <div class="ds-row"><div class="ds-icon">📍</div><div class="ds-lbl">距離你</div><div class="ds-val" id="ds-dist">350 公尺</div></div>
+        <div class="ds-row"><div class="ds-icon">🕐</div><div class="ds-lbl">上課方式</div><div class="ds-val" id="ds-mode">線上 / 面對面</div></div>
+        <div class="ds-row"><div class="ds-icon">📅</div><div class="ds-lbl">可上課時段</div><div class="ds-val" id="ds-time">週二、四 晚上</div></div>
+      </div>
+      <div class="ds-btns">
+        <button class="btn-nav" id="btn-nav" onclick="openNav()">🗺 導航</button>
+        <button class="btn-solid" onclick="showToast('申請已送出！');closeDetail()">申請交換</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CITY MODAL -->
+  <div class="city-modal" id="city-modal" onclick="hideCityModal(event)">
+    <div class="city-sheet" onclick="event.stopPropagation()">
+      <div class="city-hdl"></div>
+      <div class="city-t">選擇城市</div>
+      <div class="city-srch"><span>🔍</span> 搜尋縣市…</div>
+      <div class="city-list">
+        <div class="city-slbl">目前位置</div>
+        <div class="city-item" onclick="setCity('高雄市',24)"><div class="city-il"><div class="city-ico">📍</div><div><div class="city-nm">高雄市</div><div class="city-cnt">24 個技能</div></div></div><span class="city-ck" id="ck-高雄市">✓</span></div>
+        <div class="city-slbl">熱門城市</div>
+        <div class="city-item" onclick="setCity('台北市',142)"><div class="city-il"><div class="city-ico">🏙</div><div><div class="city-nm">台北市</div><div class="city-cnt">142 個技能</div></div></div><span class="city-ck" id="ck-台北市" style="display:none;">✓</span></div>
+        <div class="city-item" onclick="setCity('新北市',98)"><div class="city-il"><div class="city-ico">🌆</div><div><div class="city-nm">新北市</div><div class="city-cnt">98 個技能</div></div></div><span class="city-ck" id="ck-新北市" style="display:none;">✓</span></div>
+        <div class="city-item" onclick="setCity('台中市',76)"><div class="city-il"><div class="city-ico">🌇</div><div><div class="city-nm">台中市</div><div class="city-cnt">76 個技能</div></div></div><span class="city-ck" id="ck-台中市" style="display:none;">✓</span></div>
+        <div class="city-item" onclick="setCity('台南市',51)"><div class="city-il"><div class="city-ico">🏯</div><div><div class="city-nm">台南市</div><div class="city-cnt">51 個技能</div></div></div><span class="city-ck" id="ck-台南市" style="display:none;">✓</span></div>
+        <div class="city-item" onclick="setCity('桃園市',63)"><div class="city-il"><div class="city-ico">🏘</div><div><div class="city-nm">桃園市</div><div class="city-cnt">63 個技能</div></div></div><span class="city-ck" id="ck-桃園市" style="display:none;">✓</span></div>
+        <div class="city-item" onclick="setCity('新竹市',38)"><div class="city-il"><div class="city-ico">🏢</div><div><div class="city-nm">新竹市</div><div class="city-cnt">38 個技能</div></div></div><span class="city-ck" id="ck-新竹市" style="display:none;">✓</span></div>
+        <div class="city-item" onclick="setCity('宜蘭縣',12)"><div class="city-il"><div class="city-ico">⛰️</div><div><div class="city-nm">宜蘭縣</div><div class="city-cnt">12 個技能</div></div></div><span class="city-ck" id="ck-宜蘭縣" style="display:none;">✓</span></div>
+        <div class="city-item" onclick="setCity('花蓮縣',9)"><div class="city-il"><div class="city-ico">🌊</div><div><div class="city-nm">花蓮縣</div><div class="city-cnt">9 個技能</div></div></div><span class="city-ck" id="ck-花蓮縣" style="display:none;">✓</span></div>
+        <div class="city-item" onclick="setCity('全台灣',513)"><div class="city-il"><div class="city-ico">🗺</div><div><div class="city-nm">全台灣</div><div class="city-cnt">513 個技能</div></div></div><span class="city-ck" id="ck-全台灣" style="display:none;">✓</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ── 技能資料 ──────────────────────────────────────────
+const skills=[
+  {em:'🎨',bg:'#F0FAF5',name:'Figma 設計教學',user:'Mia Chen · ★ 4.9 · 苓雅區',want:'英文寫作',dist:'350 公尺',mode:'線上 / 面對面',time:'週二、四 晚上',lat:22.627,lng:120.311,inPerson:true},
+  {em:'🍜',bg:'#FFF5F0',name:'義式料理教學',user:'Marco L. · ★ 4.8 · 前金區',want:'程式教學',dist:'580 公尺',mode:'面對面',time:'週末下午',lat:22.635,lng:120.296,inPerson:true},
+  {em:'💻',bg:'#EFF2FF',name:'Python 基礎課',user:'Jay Wu · ★ 5.0 · 三民區',want:'瑜珈課程',dist:'1.2 公里',mode:'線上',time:'週間晚上',lat:22.658,lng:120.318,inPerson:false},
+  {em:'🌏',bg:'#FFFBF0',name:'日文 N3 會話',user:'Yuki T. · ★ 4.9 · 新興區',want:'人像攝影',dist:'2.1 公里',mode:'線上 / 面對面',time:'彈性',lat:22.641,lng:120.305,inPerson:true},
+  {em:'📷',bg:'#FDE8F3',name:'人像攝影教學',user:'Sara K. · ★ 4.7 · 前鎮區',want:'韓文口說',dist:'1.8 公里',mode:'面對面',time:'週日上午',lat:22.588,lng:120.318,inPerson:true},
+  {em:'🧘',bg:'#F0FAF5',name:'瑜珈冥想課',user:'Lena H. · ★ 4.8 · 鹽埕區',want:'UI 設計',dist:'2.4 公里',mode:'面對面',time:'早上 7–9 點',lat:22.624,lng:120.283,inPerson:true},
+  {em:'🎸',bg:'#FFFBF0',name:'木吉他入門',user:'Alex C. · ★ 4.9 · 左營區',want:'日文會話',dist:'3.1 公里',mode:'都可以',time:'平日晚上',lat:22.682,lng:120.285,inPerson:true},
+];
+
+let currentSkill=null;
+let mapInited=false;
+let leafMap=null;
+
+// ── 導航 ─────────────────────────────────────────────
+function goTo(id){
+  // 隱藏所有 screen
+  document.querySelectorAll('.screen,.map-screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-chatroom').style.display='none';
+
+  const el=document.getElementById(id);
+  if(!el)return;
+
+  if(id==='s-chatroom'){
+    el.style.display='flex';
+    document.getElementById('bnav').style.display='none';
+  } else {
+    el.classList.add('active');
+    document.getElementById('bnav').style.display='flex';
+  }
+
+  // nav active state
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  const navMap={'s-browse':'ni-browse','s-map':'ni-map','s-matches':'ni-matches','s-chat':'ni-chat','s-chatroom':'ni-chat','s-profile':'ni-profile','s-post':null};
+  if(navMap[id])document.getElementById(navMap[id]).classList.add('on');
+
+  // init map
+  if(id==='s-map'&&!mapInited)initMap();
+}
+
+// ── Leaflet 地圖 ──────────────────────────────────────
+function initMap(){
+  mapInited=true;
+  leafMap=L.map('map',{zoomControl:false,attributionControl:false}).setView([23.7,121.0],8);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(leafMap);
+  L.control.attribution({prefix:false}).addTo(leafMap);
+
+  skills.forEach((s,i)=>{
+    const icon=L.divIcon({
+      html:`<div class="skill-pin"><span style="font-size:15px;">${s.em}</span>${s.name.slice(0,5)}</div>`,
+      className:'',iconAnchor:[0,0]
+    });
+    L.marker([s.lat,s.lng],{icon}).addTo(leafMap).on('click',()=>openDetail(i));
+  });
+
+  // 高雄聚合示意
+  const cluster=L.divIcon({
+    html:`<div class="cluster-pin" style="width:46px;height:46px;font-size:16px;">7</div>`,
+    className:'',iconAnchor:[23,23]
+  });
+  L.marker([22.63,120.3],{icon:cluster}).addTo(leafMap);
+}
+
+function locateMe(){
+  if(!navigator.geolocation){showToast('瀏覽器不支援定位');return;}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    if(leafMap)leafMap.setView([pos.coords.latitude,pos.coords.longitude],13);
+    showToast('已定位到你的位置 📍');
+  },()=>showToast('無法取得位置，請確認權限'));
+}
+
+// ── 技能詳情 ─────────────────────────────────────────
+function openDetail(i){
+  currentSkill=skills[i];
+  const s=currentSkill;
+  document.getElementById('ds-em').textContent=s.em;
+  document.getElementById('ds-em').style.background=s.bg;
+  document.getElementById('ds-title').textContent=s.name;
+  document.getElementById('ds-sub').textContent=s.user;
+  document.getElementById('ds-want').textContent=s.want;
+  document.getElementById('ds-dist').textContent=s.dist;
+  document.getElementById('ds-mode').textContent=s.mode;
+  document.getElementById('ds-time').textContent=s.time;
+  document.getElementById('btn-nav').style.display=s.inPerson?'block':'none';
+  document.getElementById('detail-overlay').classList.add('show');
+}
+function closeDetail(e){
+  if(e&&e.target!==document.getElementById('detail-overlay'))return;
+  document.getElementById('detail-overlay').classList.remove('show');
+}
+function openNav(){
+  if(!currentSkill)return;
+  const url=`https://maps.apple.com/?daddr=${currentSkill.lat},${currentSkill.lng}&dirflg=d`;
+  window.open(url,'_blank');
+}
+
+// ── City ─────────────────────────────────────────────
+function showCity(){document.getElementById('city-modal').classList.add('show');}
+function hideCityModal(e){if(e.target===document.getElementById('city-modal'))document.getElementById('city-modal').classList.remove('show');}
+function setCity(name,count){
+  document.querySelectorAll('.city-ck').forEach(el=>el.style.display='none');
+  const ck=document.getElementById('ck-'+name);
+  if(ck)ck.style.display='block';
+  document.getElementById('city-lbl').textContent=name;
+  const fc=document.getElementById('form-city');
+  if(fc)fc.textContent=name;
+  const sc=document.getElementById('skill-count');
+  if(sc)sc.textContent=name+' · '+count+' 個技能';
+  setTimeout(()=>document.getElementById('city-modal').classList.remove('show'),200);
+}
+
+// ── Chips ─────────────────────────────────────────────
+function fchip(el){document.querySelectorAll('.chips .chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');}
+function mfchip(el){document.querySelectorAll('.map-chips .mchip').forEach(c=>{c.classList.remove('on');c.classList.add('off');});el.classList.remove('off');el.classList.add('on');}
+function pickE(el){document.querySelectorAll('.ep').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');}
+function pickM(el){document.querySelectorAll('.mc2').forEach(e=>e.classList.remove('on'));el.classList.add('on');}
+
+// ── Toast ─────────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(window._tt);
+  window._tt=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ── FAB 發布按鈕（從瀏覽/地圖跳到發布）─────────────
+document.querySelectorAll('.ni').forEach(btn=>{
+  if(btn.querySelector('span')?.textContent==='發布')return;
+});
+
+// ── Service Worker ─────────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('service-worker.js')
+      .catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>

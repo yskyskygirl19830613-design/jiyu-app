@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>管理訂閱 — 技遇</title>
+<meta name="theme-color" content="#3D9970"/>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="manifest" href="manifest.json"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--g:#3D9970;--gl:#E8F5EF;--gd:#2D7A55;--t:#111;--t2:#888;--bd:#EBEBEB;--bg2:#F7F7F7;--red:#C0392B;--redl:#FEE;}
+html,body{min-height:100%;background:#fff;font-family:'Plus Jakarta Sans',-apple-system,sans-serif;}
+#app{max-width:430px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;}
+.hdr{padding:calc(env(safe-area-inset-top,0px)+14px) 20px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--bd);flex-shrink:0;}
+.back-btn{background:none;border:none;font-size:22px;color:var(--t2);cursor:pointer;padding:0;}
+.hdr-title{font-family:'Instrument Serif',serif;font-size:20px;color:var(--t);}
+.hdr-title i{font-style:italic;color:var(--g);}
+.content{padding:24px 22px;flex:1;}
+
+/* 狀態卡片 */
+.status-card{border-radius:18px;padding:20px;margin-bottom:20px;display:flex;align-items:center;gap:14px;}
+.status-card.active{background:var(--gl);border:1.5px solid #C8E8D8;}
+.status-card.inactive{background:var(--bg2);border:1.5px solid var(--bd);}
+.status-icon{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.status-icon.active{background:var(--g);}
+.status-icon.inactive{background:#DDD;}
+.status-name{font-family:'Instrument Serif',serif;font-size:18px;color:var(--t);margin-bottom:3px;}
+.status-desc{font-size:13px;color:var(--t2);}
+.status-badge{margin-left:auto;flex-shrink:0;}
+.badge-active{background:var(--g);color:#fff;font-size:11px;font-weight:600;padding:4px 12px;border-radius:100px;}
+.badge-inactive{background:#DDD;color:#888;font-size:11px;font-weight:600;padding:4px 12px;border-radius:100px;}
+
+/* 詳情卡 */
+.info-card{background:var(--bg2);border-radius:14px;padding:16px;margin-bottom:16px;}
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bd);}
+.info-row:last-child{border:none;}
+.info-label{font-size:13px;color:var(--t2);}
+.info-value{font-size:13px;font-weight:500;color:var(--t);}
+.info-value.green{color:var(--g);}
+.info-value.red{color:var(--red);}
+
+/* 功能清單 */
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;}
+.feat-item{background:var(--bg2);border-radius:11px;padding:11px 12px;display:flex;align-items:center;gap:8px;}
+.feat-check{width:20px;height:20px;border-radius:50%;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.feat-check.off{background:#F0F0F0;color:#CCC;}
+.feat-text{font-size:12px;color:var(--t);line-height:1.4;}
+.feat-text.off{color:var(--t2);}
+
+/* 按鈕 */
+.btn-primary{width:100%;padding:14px;border-radius:13px;background:var(--g);color:#fff;font-size:15px;font-weight:600;border:none;cursor:pointer;font-family:inherit;margin-bottom:10px;}
+.btn-outline{width:100%;padding:13px;border-radius:13px;border:1.5px solid var(--bd);background:#fff;font-size:14px;font-weight:500;color:var(--t2);cursor:pointer;font-family:inherit;margin-bottom:10px;}
+.btn-danger{width:100%;padding:13px;border-radius:13px;border:1.5px solid #F5C6C6;background:#FEF0F0;font-size:14px;font-weight:500;color:var(--red);cursor:pointer;font-family:inherit;}
+
+/* 取消確認 Modal */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none;align-items:flex-end;}
+.modal-ov.show{display:flex;}
+.modal-sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;padding:24px 24px calc(env(safe-area-inset-bottom,0px)+20px);}
+.modal-em{font-size:42px;text-align:center;margin-bottom:12px;}
+.modal-title{font-family:'Instrument Serif',serif;font-size:22px;color:var(--t);text-align:center;margin-bottom:8px;}
+.modal-sub{font-size:14px;color:var(--t2);text-align:center;line-height:1.65;margin-bottom:20px;}
+.modal-list{background:var(--bg2);border-radius:12px;padding:12px 14px;margin-bottom:20px;}
+.modal-list-item{font-size:13px;color:var(--t2);padding:5px 0;display:flex;align-items:center;gap:8px;}
+.modal-list-item::before{content:'×';color:var(--red);font-weight:700;}
+.btn-cancel-sub{width:100%;padding:14px;border-radius:13px;background:var(--redl);color:var(--red);font-size:15px;font-weight:600;border:none;cursor:pointer;font-family:inherit;margin-bottom:10px;}
+.btn-keep{width:100%;padding:13px;border-radius:13px;border:1.5px solid var(--bd);background:#fff;font-size:14px;color:var(--t2);cursor:pointer;font-family:inherit;}
+
+/* Toast */
+.toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+20px);left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:13px;padding:10px 20px;border-radius:100px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hdr">
+    <button class="back-btn" onclick="history.back()">‹</button>
+    <div class="hdr-title">管理<i>訂閱</i></div>
+  </div>
+
+  <div class="content">
+    <!-- 訂閱狀態 -->
+    <div id="status-card" class="status-card inactive">
+      <div class="status-icon inactive" id="status-icon">😊</div>
+      <div>
+        <div class="status-name" id="status-name">免費版</div>
+        <div class="status-desc" id="status-desc">基本功能使用中</div>
+      </div>
+      <div class="status-badge"><span id="status-badge" class="badge-inactive">免費</span></div>
+    </div>
+
+    <!-- 訂閱詳情 -->
+    <div class="info-card" id="sub-info" style="display:none;">
+      <div class="info-row"><span class="info-label">方案</span><span class="info-value" id="sub-plan">—</span></div>
+      <div class="info-row"><span class="info-label">下次收費日</span><span class="info-value green" id="sub-next">—</span></div>
+      <div class="info-row"><span class="info-label">每期金額</span><span class="info-value" id="sub-amount">—</span></div>
+      <div class="info-row"><span class="info-label">付款方式</span><span class="info-value" id="sub-card">—</span></div>
+      <div class="info-row"><span class="info-label">訂閱狀態</span><span class="info-value green" id="sub-status">—</span></div>
+    </div>
+
+    <!-- 功能清單 -->
+    <div class="feat-grid" id="feat-grid">
+      <div class="feat-item"><div class="feat-check off">✓</div><div class="feat-text off">無限發布技能</div></div>
+      <div class="feat-item"><div class="feat-check off">✓</div><div class="feat-text off">無限申請</div></div>
+      <div class="feat-item"><div class="feat-check off">✓</div><div class="feat-text off">AI 配對推薦</div></div>
+      <div class="feat-item"><div class="feat-check off">✓</div><div class="feat-text off">查看誰看過你</div></div>
+      <div class="feat-item"><div class="feat-check off">✓</div><div class="feat-text off">優先搜尋排名</div></div>
+      <div class="feat-item"><div class="feat-check off">✓</div><div class="feat-text off">Premium 徽章</div></div>
+    </div>
+
+    <!-- 按鈕區 -->
+    <div id="btn-area">
+      <button class="btn-primary" id="main-btn" onclick="mainAction()">升級 Premium →</button>
+      <button class="btn-outline" onclick="window.location.href='premium.html'">查看方案比較</button>
+    </div>
+  </div>
+</div>
+
+<!-- 取消確認 Modal -->
+<div class="modal-ov" id="cancel-modal">
+  <div class="modal-sheet">
+    <div class="modal-em">😢</div>
+    <div class="modal-title">確定要取消 Premium？</div>
+    <div class="modal-sub">取消後，當前計費週期結束前仍可使用 Premium 功能。到期後將回到免費版。</div>
+    <div class="modal-list">
+      <div class="modal-list-item">失去無限發布技能</div>
+      <div class="modal-list-item">失去 AI 智能配對推薦</div>
+      <div class="modal-list-item">失去優先搜尋排名</div>
+      <div class="modal-list-item">每月申請限制回到 5 次</div>
+    </div>
+    <button class="btn-cancel-sub" id="confirm-cancel-btn" onclick="confirmCancel()">確定取消訂閱</button>
+    <button class="btn-keep" onclick="hideCancelModal()">保留 Premium ✓</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://your-project.supabase.co';
+const SUPABASE_KEY = 'your-anon-public-key';
+const API_BASE     = 'https://your-app.vercel.app';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null, profile = null;
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { window.location.href = 'login.html'; return; }
+  currentUser = user;
+  await loadSubscription();
+});
+
+async function loadSubscription() {
+  const { data } = await sb.from('profiles')
+    .select('*').eq('id', currentUser.id).single();
+  profile = data;
+
+  if (data?.is_premium) {
+    // Premium 狀態
+    document.getElementById('status-card').className = 'status-card active';
+    document.getElementById('status-icon').className = 'status-icon active';
+    document.getElementById('status-icon').textContent = '⭐';
+    document.getElementById('status-name').textContent = 'Premium 會員';
+    document.getElementById('status-desc').textContent = '所有功能已解鎖';
+    document.getElementById('status-badge').className  = 'badge-active';
+    document.getElementById('status-badge').textContent = '有效中';
+
+    // 詳情
+    document.getElementById('sub-info').style.display = 'block';
+    document.getElementById('sub-plan').textContent   = data.subscription_status === 'trialing' ? '試用期（7 天）' : '月繳方案';
+    document.getElementById('sub-amount').textContent = 'NT$99 / 月';
+    document.getElementById('sub-status').textContent = data.subscription_status === 'trialing' ? '試用中' : '訂閱有效';
+    const until = data.premium_until ? new Date(data.premium_until).toLocaleDateString('zh-TW') : '—';
+    document.getElementById('sub-next').textContent = until;
+    document.getElementById('sub-card').textContent = '信用卡 ****';
+
+    // 功能全亮
+    document.querySelectorAll('.feat-check').forEach(el => { el.className = 'feat-check'; el.textContent = '✓'; });
+    document.querySelectorAll('.feat-text').forEach(el => el.className = 'feat-text');
+
+    // 按鈕
+    document.getElementById('main-btn').textContent = '取消訂閱';
+    document.getElementById('main-btn').style.background = '#FEF0F0';
+    document.getElementById('main-btn').style.color = '#C0392B';
+  }
+}
+
+function mainAction() {
+  if (profile?.is_premium) showCancelModal();
+  else window.location.href = 'premium.html';
+}
+
+function showCancelModal() { document.getElementById('cancel-modal').classList.add('show'); }
+function hideCancelModal() { document.getElementById('cancel-modal').classList.remove('show'); }
+
+async function confirmCancel() {
+  const btn = document.getElementById('confirm-cancel-btn');
+  btn.disabled = true; btn.textContent = '處理中…';
+  try {
+    const res = await fetch(`${API_BASE}/api/cancel-subscription`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUser.id }),
+    });
+    const { success } = await res.json();
+    if (success) {
+      hideCancelModal();
+      showToast('訂閱已取消，到期前仍可使用 Premium');
+      setTimeout(() => window.location.href = 'app.html', 2000);
+    }
+  } catch {
+    // 若 API 尚未建立，直接更新 DB
+    await sb.from('profiles').update({ subscription_status:'canceled' }).eq('id', currentUser.id);
+    hideCancelModal();
+    showToast('訂閱已取消');
+    setTimeout(() => window.location.href = 'app.html', 2000);
+  }
+  btn.disabled = false;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

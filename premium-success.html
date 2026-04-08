@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>升級成功！— 技遇</title>
+<meta name="theme-color" content="#3D9970"/>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--g:#3D9970;--gl:#E8F5EF;--t:#111;--t2:#888;}
+html,body{height:100%;background:#fff;font-family:'Plus Jakarta Sans',-apple-system,sans-serif;}
+#app{max-width:430px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px calc(env(safe-area-inset-bottom,0px)+32px);text-align:center;}
+.icon{width:90px;height:90px;border-radius:28px;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:42px;margin:0 auto 24px;}
+.title{font-family:'Instrument Serif',serif;font-size:30px;color:var(--t);margin-bottom:8px;}
+.title i{font-style:italic;color:var(--g);}
+.sub{font-size:15px;color:var(--t2);line-height:1.65;margin-bottom:32px;}
+.perks{width:100%;background:#F7F7F7;border-radius:16px;padding:18px;margin-bottom:28px;text-align:left;}
+.perk{display:flex;align-items:center;gap:11px;margin-bottom:12px;}
+.perk:last-child{margin-bottom:0;}
+.perk-icon{width:34px;height:34px;border-radius:10px;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.perk-text{font-size:14px;color:var(--t);}
+.btn{width:100%;padding:15px;border-radius:14px;background:var(--g);color:#fff;font-size:15px;font-weight:600;border:none;cursor:pointer;font-family:inherit;}
+.btn-out{width:100%;padding:13px;border-radius:14px;border:1px solid #EBEBEB;background:#fff;font-size:14px;color:var(--t2);cursor:pointer;font-family:inherit;margin-top:10px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="icon">⭐</div>
+  <div class="title">歡迎加入 <i>Premium</i>！</div>
+  <div class="sub">付款成功，所有 Premium 功能已立即開啟。感謝你支持技遇 🎉</div>
+
+  <div class="perks">
+    <div class="perk"><div class="perk-icon">♾️</div><div class="perk-text">無限發布技能 · 無限申請交換</div></div>
+    <div class="perk"><div class="perk-icon">🤖</div><div class="perk-text">AI 智能配對推薦已啟用</div></div>
+    <div class="perk"><div class="perk-icon">👁</div><div class="perk-text">可查看誰看過你的技能</div></div>
+    <div class="perk"><div class="perk-icon">🔝</div><div class="perk-text">搜尋結果優先顯示</div></div>
+    <div class="perk"><div class="perk-icon">⭐</div><div class="perk-text">Premium 專屬徽章已加入個人頁</div></div>
+  </div>
+
+  <button class="btn" onclick="window.location.href='app.html'">開始使用 →</button>
+  <button class="btn-out" onclick="window.location.href='subscription.html'">管理訂閱</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://your-project.supabase.co';
+const SUPABASE_KEY = 'your-anon-public-key';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Stripe 付款成功後，webhook 會更新 Supabase
+// 這裡只做 UI 顯示，實際啟用由後端 webhook 處理
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { window.location.href = 'login.html'; return; }
+});
+</script>
+</body>
+</html>
