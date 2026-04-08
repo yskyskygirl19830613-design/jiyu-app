@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+
+<!-- Open Graph / 社群分享預覽 -->
+<meta property="og:type"        content="website"/>
+<meta property="og:site_name"   content="技遇 JiYu"/>
+<meta property="og:title"       id="og-title"       content="技遇 — 技能交換"/>
+<meta property="og:description" id="og-description" content="因技相遇，共同成長。"/>
+<meta property="og:image"       id="og-image"       content="/icon-512.png"/>
+<meta property="og:url"         id="og-url"         content="https://jiyu-app.vercel.app"/>
+
+<!-- Twitter Card -->
+<meta name="twitter:card"        content="summary_large_image"/>
+<meta name="twitter:title"       id="tw-title"       content="技遇 — 技能交換"/>
+<meta name="twitter:description" id="tw-desc"        content="因技相遇，共同成長。"/>
+<meta name="twitter:image"       id="tw-image"       content="/icon-512.png"/>
+
+<!-- LINE 分享 -->
+<meta property="og:image:width"  content="512"/>
+<meta property="og:image:height" content="512"/>
+
+<title id="page-title">技遇 JiYu — 技能交換</title>
+<title>技遇 JiYu — 技能交換</title>
+<meta name="theme-color" content="#3D9970"/>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="manifest" href="manifest.json"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--g:#3D9970;--gl:#E8F5EF;--gd:#2D7A55;--t:#111;--t2:#888;--bd:#EBEBEB;--bg2:#F7F7F7;}
+html,body{min-height:100%;background:#F2F0EB;font-family:'Plus Jakarta Sans',-apple-system,sans-serif;}
+#app{max-width:430px;margin:0 auto;min-height:100dvh;background:#fff;display:flex;flex-direction:column;}
+
+/* 頂部漸層 banner */
+.banner{height:200px;background:linear-gradient(135deg,#2D7A55 0%,#3D9970 60%,#5CB88A 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;position:relative;overflow:hidden;}
+.banner::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
+.banner-em{font-size:56px;z-index:1;}
+.banner-name{font-family:'Instrument Serif',serif;font-size:22px;color:#fff;z-index:1;text-align:center;padding:0 20px;}
+
+/* 技能卡 */
+.skill-card{margin:20px 20px 0;border:1px solid var(--bd);border-radius:18px;overflow:hidden;}
+.skill-card-head{padding:18px 18px 14px;}
+.skill-name{font-family:'Instrument Serif',serif;font-size:22px;color:var(--t);margin-bottom:6px;}
+.skill-user{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.user-ava{width:36px;height:36px;border-radius:11px;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.user-info-name{font-size:14px;font-weight:500;color:var(--t);}
+.user-info-city{font-size:12px;color:var(--t2);}
+.skill-tags{display:flex;gap:7px;flex-wrap:wrap;}
+.tag{font-size:12px;font-weight:500;padding:4px 11px;border-radius:100px;}
+.tg{background:#E8F5EF;color:#2D7A55;}
+.to{background:#FFF0E8;color:#B85A1E;}
+.tc{background:#EAF0FF;color:#2D53C5;}
+
+/* 詳情 */
+.detail-rows{border-top:1px solid var(--bd);padding:14px 18px;}
+.d-row{display:flex;align-items:center;gap:10px;margin-bottom:11px;}
+.d-row:last-child{margin-bottom:0;}
+.d-icon{width:32px;height:32px;border-radius:9px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:14px;}
+.d-label{font-size:13px;color:var(--t2);}
+.d-val{font-size:13px;font-weight:500;color:var(--t);margin-left:auto;}
+
+/* 評分 */
+.rating-row{display:flex;align-items:center;gap:6px;margin-top:4px;}
+.stars{color:#F5A623;font-size:13px;}
+.rating-count{font-size:12px;color:var(--t2);}
+
+/* CTA */
+.cta-section{padding:20px;}
+.btn-apply{width:100%;padding:15px;border-radius:14px;background:var(--g);color:#fff;font-size:16px;font-weight:600;border:none;cursor:pointer;font-family:inherit;margin-bottom:10px;}
+.btn-share{width:100%;padding:13px;border-radius:14px;border:1.5px solid var(--bd);background:#fff;font-size:14px;font-weight:500;color:var(--t2);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-share svg{flex-shrink:0;}
+
+/* 其他技能 */
+.more-section{padding:0 20px 24px;}
+.more-title{font-size:13px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;}
+.more-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.more-card{border:1px solid var(--bd);border-radius:13px;overflow:hidden;cursor:pointer;}
+.more-card-img{height:64px;display:flex;align-items:center;justify-content:center;font-size:26px;}
+.more-card-body{padding:7px 10px 10px;}
+.more-card-name{font-size:13px;font-weight:500;color:var(--t);margin-bottom:3px;}
+.more-card-user{font-size:11px;color:var(--t2);}
+
+/* App 下載提示 */
+.app-banner{margin:0 20px 20px;background:var(--gl);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.app-banner-icon{font-size:28px;flex-shrink:0;}
+.app-banner-text{flex:1;}
+.app-banner-title{font-size:14px;font-weight:600;color:var(--gd);margin-bottom:2px;}
+.app-banner-sub{font-size:12px;color:#6B9B82;}
+.app-banner-btn{background:var(--g);color:#fff;border:none;border-radius:9px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0;}
+
+.loading{text-align:center;padding:60px 24px;color:var(--t2);}
+.error-state{text-align:center;padding:60px 24px;}
+.error-em{font-size:48px;margin-bottom:12px;}
+.error-title{font-family:'Instrument Serif',serif;font-size:22px;color:var(--t);margin-bottom:8px;}
+.error-sub{font-size:14px;color:var(--t2);}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="loading" class="loading">⏳ 載入技能中…</div>
+  <div id="main-content" style="display:none;flex:1;flex-direction:column;"></div>
+  <div id="error-state" class="error-state" style="display:none;">
+    <div class="error-em">🔍</div>
+    <div class="error-title">找不到此技能</div>
+    <div class="error-sub">技能可能已下架或連結有誤</div>
+    <button onclick="window.location.href='app.html'" style="margin-top:20px;padding:12px 24px;background:#3D9970;color:#fff;border:none;border-radius:12px;font-size:14px;cursor:pointer;font-family:inherit;">瀏覽其他技能</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://your-project.supabase.co';
+const SUPABASE_KEY = 'your-anon-public-key';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const catColors = {設計:'#F0FAF5',語言:'#FFFBF0',音樂:'#FFF0F5',程式:'#EFF2FF',料理:'#FFF5F0',攝影:'#FDE8F3',健身:'#F0FAF5',其他:'#F5F5F5'};
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(location.search);
+  const skillId = params.get('id');
+  if (!skillId) { showError(); return; }
+
+  const { data: skill } = await sb.from('skills')
+    .select('*,profiles(full_name,avatar_url,city,rating,swap_count)')
+    .eq('id', skillId).eq('is_active', true).single();
+
+  if (!skill) { showError(); return; }
+
+  // 更新 OG tags（對靜態爬蟲效果有限，建議用 Vercel Edge Function 動態注入）
+  const title = `${skill.name} — 技遇 JiYu`;
+  const desc  = `${skill.profiles?.full_name||'用戶'} 想用「${skill.name}」換「${skill.want||'技能'}」。城市：${skill.city}`;
+  document.title = title;
+  document.getElementById('og-title').content       = title;
+  document.getElementById('og-description').content = desc;
+  document.getElementById('og-url').content         = location.href;
+  document.getElementById('tw-title').content       = title;
+  document.getElementById('tw-desc').content        = desc;
+  document.getElementById('page-title').textContent = title;
+
+  // 增加瀏覽次數
+  sb.from('skills').update({ view_count: (skill.view_count||0)+1 }).eq('id', skillId);
+
+  // 渲染頁面
+  const p = skill.profiles || {};
+  document.getElementById('loading').style.display = 'none';
+  const mc = document.getElementById('main-content');
+  mc.style.display = 'flex';
+  mc.innerHTML = `
+    <a href="app.html" style="position:absolute;top:calc(env(safe-area-inset-top,0px)+12px);left:14px;z-index:10;background:rgba(0,0,0,.3);color:#fff;border:none;border-radius:10px;padding:6px 12px;font-size:13px;text-decoration:none;cursor:pointer;">‹ 返回</a>
+    <div class="banner">
+      <div class="banner-em">${skill.emoji||'🎨'}</div>
+      <div class="banner-name">${skill.name}</div>
+    </div>
+
+    <div class="skill-card">
+      <div class="skill-card-head">
+        <div class="skill-name">${skill.name}</div>
+        <div class="skill-user">
+          <div class="user-ava">${p.avatar_url||'😊'}</div>
+          <div>
+            <div class="user-info-name">${p.full_name||'用戶'}</div>
+            <div class="user-info-city">📍 ${skill.city||'—'}</div>
+          </div>
+          ${p.rating ? `<div class="rating-row" style="margin-left:auto;"><span class="stars">★</span><span style="font-size:13px;font-weight:500;color:#111;">${Number(p.rating).toFixed(1)}</span><span class="rating-count">（${p.swap_count||0} 次交換）</span></div>` : ''}
+        </div>
+        <div class="skill-tags">
+          <span class="tag tg">換：${skill.want||'—'}</span>
+          <span class="tag tc">${skill.category||'—'}</span>
+          ${skill.mode ? `<span class="tag to">${skill.mode}</span>` : ''}
+        </div>
+      </div>
+      <div class="detail-rows">
+        ${skill.description ? `<div class="d-row"><div class="d-icon">📝</div><div style="flex:1;"><div class="d-label">技能介紹</div><div style="font-size:13px;color:#111;margin-top:3px;line-height:1.55;">${skill.description}</div></div></div>` : ''}
+        <div class="d-row"><div class="d-icon">🕐</div><div class="d-label">上課方式</div><div class="d-val">${skill.mode||'—'}</div></div>
+        <div class="d-row"><div class="d-icon">📍</div><div class="d-label">所在城市</div><div class="d-val">${skill.city||'—'}</div></div>
+        <div class="d-row"><div class="d-icon">👁</div><div class="d-label">瀏覽次數</div><div class="d-val">${(skill.view_count||0)+1} 次</div></div>
+      </div>
+    </div>
+
+    <div class="cta-section">
+      <button class="btn-apply" onclick="applyNow('${skillId}')">申請技能交換 →</button>
+      <button class="btn-share" onclick="nativeShare()">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        分享給朋友
+      </button>
+    </div>
+
+    <!-- App 安裝提示 -->
+    <div class="app-banner">
+      <div class="app-banner-icon">📱</div>
+      <div class="app-banner-text">
+        <div class="app-banner-title">加入技遇，免費交換技能</div>
+        <div class="app-banner-sub">台灣最大技能交換平台</div>
+      </div>
+      <button class="app-banner-btn" onclick="window.location.href='index.html'">立即加入</button>
+    </div>
+  `;
+
+  await loadMoreSkills(skill.city, skillId);
+});
+
+async function loadMoreSkills(city, excludeId) {
+  const { data } = await sb.from('skills')
+    .select('*,profiles(full_name)')
+    .eq('is_active', true).eq('city', city)
+    .neq('id', excludeId).limit(4);
+
+  if (!data?.length) return;
+  const mc = document.getElementById('main-content');
+  const moreDiv = document.createElement('div');
+  moreDiv.className = 'more-section';
+  moreDiv.innerHTML = `
+    <div class="more-title">同城市的技能</div>
+    <div class="more-grid">
+      ${data.map(s=>`
+        <div class="more-card" onclick="window.location.href='skill.html?id=${s.id}'">
+          <div class="more-card-img" style="background:${catColors[s.category]||'#F5F5F5'};">${s.emoji||'🎨'}</div>
+          <div class="more-card-body">
+            <div class="more-card-name">${s.name}</div>
+            <div class="more-card-user">${s.profiles?.full_name||'用戶'}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  mc.appendChild(moreDiv);
+}
+
+function applyNow(skillId) {
+  // 先確認是否登入
+  const redirectUrl = encodeURIComponent(location.href);
+  window.location.href = `app.html?apply=${skillId}`;
+}
+
+function nativeShare() {
+  if (navigator.share) {
+    navigator.share({ title: document.title, url: location.href }).catch(()=>{});
+  } else {
+    navigator.clipboard?.writeText(location.href);
+    alert('連結已複製！');
+  }
+}
+
+function showError() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error-state').style.display = 'block';
+}
+</script>
+</body>
+</html>

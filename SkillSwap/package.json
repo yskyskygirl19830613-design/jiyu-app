@@ -1,0 +1,10 @@
+{
+  "name": "jiyu-app",
+  "version": "1.0.0",
+  "description": "\u6280\u9047 JiYu \u2014 \u6280\u80fd\u4ea4\u63db\u5e73\u53f0",
+  "dependencies": {
+    "stripe": "^14.0.0",
+    "@supabase/supabase-js": "^2.0.0",
+    "web-push": ">=3.6.0"
+  }
+}

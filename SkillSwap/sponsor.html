@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>精選置頂 — 技遇</title>
+<meta name="theme-color" content="#3D9970"/>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="manifest" href="manifest.json"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--g:#3D9970;--gl:#E8F5EF;--o:#E07B39;--ol:#FFF0E8;--t:#111;--t2:#888;--bd:#EBEBEB;--bg2:#F7F7F7;}
+html,body{min-height:100%;background:#fff;font-family:'Plus Jakarta Sans',-apple-system,sans-serif;}
+#app{max-width:430px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;}
+.hdr{padding:calc(env(safe-area-inset-top,0px)+14px) 20px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--bd);}
+.back-btn{background:none;border:none;font-size:22px;color:var(--t2);cursor:pointer;padding:0;}
+.hdr-title{font-family:'Instrument Serif',serif;font-size:20px;color:var(--t);}
+.hdr-title i{font-style:italic;color:var(--o);}
+
+/* Hero */
+.hero{padding:24px 24px 16px;text-align:center;}
+.hero-em{font-size:42px;margin-bottom:12px;}
+.hero-title{font-family:'Instrument Serif',serif;font-size:26px;color:var(--t);margin-bottom:8px;}
+.hero-title i{font-style:italic;color:var(--o);}
+.hero-sub{font-size:14px;color:var(--t2);line-height:1.65;}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:0 24px 20px;}
+.stat{background:var(--bg2);border-radius:12px;padding:12px;text-align:center;}
+.stat-n{font-family:'Instrument Serif',serif;font-size:22px;color:var(--o);}
+.stat-l{font-size:11px;color:var(--t2);margin-top:2px;}
+
+/* 我的技能選擇 */
+.section-title{padding:0 24px 10px;font-size:13px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;}
+.skill-pick{margin:0 24px 8px;border:1.5px solid var(--bd);border-radius:14px;padding:13px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s;}
+.skill-pick.sel{border-color:var(--o);background:var(--ol);}
+.skill-pick-em{width:44px;height:44px;border-radius:12px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.skill-pick-name{font-size:14px;font-weight:500;color:var(--t);}
+.skill-pick-meta{font-size:12px;color:var(--t2);margin-top:2px;}
+.pick-radio{margin-left:auto;width:20px;height:20px;border-radius:50%;border:2px solid var(--bd);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.skill-pick.sel .pick-radio{background:var(--o);border-color:var(--o);}
+.skill-pick.sel .pick-radio::after{content:'✓';font-size:11px;color:#fff;font-weight:700;}
+.no-skills{text-align:center;padding:24px;color:var(--t2);font-size:14px;}
+
+/* 方案選擇 */
+.plan-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 24px 20px;}
+.plan-opt{border:1.5px solid var(--bd);border-radius:13px;padding:13px 10px;text-align:center;cursor:pointer;transition:all .15s;}
+.plan-opt.sel{border-color:var(--o);background:var(--ol);}
+.plan-days{font-family:'Instrument Serif',serif;font-size:22px;color:var(--t);margin-bottom:3px;}
+.plan-label{font-size:11px;color:var(--t2);margin-bottom:8px;}
+.plan-price{font-size:15px;font-weight:600;color:var(--o);}
+.plan-per{font-size:10px;color:var(--t2);}
+.plan-opt.sel .plan-days,.plan-opt.sel .plan-price{color:var(--o);}
+.best-tag{font-size:9px;font-weight:700;background:var(--o);color:#fff;padding:2px 7px;border-radius:100px;display:inline-block;margin-bottom:6px;}
+
+/* 效果說明 */
+.effect-card{margin:0 24px 20px;background:var(--ol);border-radius:14px;padding:16px;}
+.effect-title{font-size:13px;font-weight:600;color:var(--o);margin-bottom:10px;}
+.effect-item{display:flex;align-items:center;gap:9px;margin-bottom:8px;font-size:13px;color:var(--t);}
+.effect-item:last-child{margin-bottom:0;}
+.effect-icon{font-size:16px;width:24px;text-align:center;}
+
+/* CTA */
+.cta-wrap{padding:4px 24px calc(env(safe-area-inset-bottom,0px)+24px);}
+.btn-cta{width:100%;padding:16px;border-radius:15px;background:var(--o);color:#fff;font-size:16px;font-weight:600;border:none;cursor:pointer;font-family:inherit;}
+.btn-cta:disabled{opacity:.45;cursor:not-allowed;}
+.cta-note{text-align:center;font-size:12px;color:var(--t2);margin-top:10px;line-height:1.6;}
+
+/* Toast */
+.toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+20px);left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:13px;padding:10px 20px;border-radius:100px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+.loading-ov{position:fixed;inset:0;background:rgba(255,255,255,.9);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.loading-ov.show{display:flex;}
+.spinner{width:40px;height:40px;border:3px solid var(--ol);border-top-color:var(--o);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hdr">
+    <button class="back-btn" onclick="history.back()">‹</button>
+    <div class="hdr-title">精選<i>置頂</i></div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-em">🔝</div>
+    <div class="hero-title">讓你的技能<br><i>被更多人看見</i></div>
+    <div class="hero-sub">精選置頂讓你的技能出現在搜尋結果最上方，橘色框線吸引目光，平均增加 3× 申請率。</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-n">3×</div><div class="stat-l">申請率提升</div></div>
+    <div class="stat"><div class="stat-n">89%</div><div class="stat-l">用戶會先點精選</div></div>
+    <div class="stat"><div class="stat-n">24h</div><div class="stat-l">上架後生效</div></div>
+  </div>
+
+  <!-- 選擇要置頂的技能 -->
+  <div class="section-title">選擇要置頂的技能</div>
+  <div id="my-skills-list"><div class="no-skills">⏳ 載入中…</div></div>
+
+  <!-- 選擇置頂天數 -->
+  <div class="section-title" style="padding-top:16px;">選擇置頂天數</div>
+  <div class="plan-row">
+    <div class="plan-opt" id="plan-3" onclick="pickPlan(3,49)">
+      <div class="plan-days">3</div>
+      <div class="plan-label">天</div>
+      <div class="plan-price">$49</div>
+    </div>
+    <div class="plan-opt sel" id="plan-7" onclick="pickPlan(7,89)">
+      <div class="best-tag">最熱門</div>
+      <div class="plan-days">7</div>
+      <div class="plan-label">天</div>
+      <div class="plan-price">$89</div>
+      <div class="plan-per">$12.7/天</div>
+    </div>
+    <div class="plan-opt" id="plan-30" onclick="pickPlan(30,299)">
+      <div class="plan-days">30</div>
+      <div class="plan-label">天</div>
+      <div class="plan-price">$299</div>
+      <div class="plan-per">$9.9/天</div>
+    </div>
+  </div>
+
+  <!-- 效果說明 -->
+  <div class="effect-card">
+    <div class="effect-title">精選置頂效果</div>
+    <div class="effect-item"><span class="effect-icon">🔝</span>固定出現搜尋結果最上方</div>
+    <div class="effect-item"><span class="effect-icon">🟠</span>橘色外框讓你的卡片更醒目</div>
+    <div class="effect-item"><span class="effect-icon">⭐</span>「精選」標籤增加信任感</div>
+    <div class="effect-item"><span class="effect-icon">📊</span>曝光數據追蹤（查看幾人看過）</div>
+  </div>
+
+  <div class="cta-wrap">
+    <button class="btn-cta" id="cta-btn" onclick="startSponsor()" disabled>
+      選擇技能後付款 →
+    </button>
+    <div class="cta-note">付款後立即生效，到期後自動恢復一般顯示。</div>
+  </div>
+</div>
+
+<div class="loading-ov" id="loading-ov">
+  <div class="spinner"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://your-project.supabase.co';
+const SUPABASE_KEY = 'your-anon-public-key';
+const API_BASE     = 'https://your-app.vercel.app';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let selectedSkillId = null;
+let selectedDays  = 7;
+let selectedPrice = 89;
+
+const SPONSOR_PRICES = {
+  3:  { price: 49,  priceId: 'price_sponsor_3d'  },
+  7:  { price: 89,  priceId: 'price_sponsor_7d'  },
+  30: { price: 299, priceId: 'price_sponsor_30d' },
+};
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { window.location.href = 'login.html'; return; }
+  currentUser = user;
+  await loadMySkills();
+});
+
+async function loadMySkills() {
+  const { data } = await sb.from('skills').select('*')
+    .eq('user_id', currentUser.id).eq('is_active', true)
+    .order('created_at', { ascending: false });
+
+  const list = data || [];
+  const container = document.getElementById('my-skills-list');
+
+  if (!list.length) {
+    container.innerHTML = '<div class="no-skills">你還沒有上架中的技能<br>先去發布技能再來置頂！</div>';
+    return;
+  }
+
+  const now = new Date();
+  container.innerHTML = list.map(s => {
+    const isActive = s.sponsored_until && new Date(s.sponsored_until) > now;
+    return `<div class="skill-pick" id="sp-${s.id}" onclick="pickSkill('${s.id}')">
+      <div class="skill-pick-em">${s.emoji||'🎨'}</div>
+      <div style="flex:1;">
+        <div class="skill-pick-name">${s.name}</div>
+        <div class="skill-pick-meta">${isActive ? '🟠 置頂中' : '一般顯示中'}</div>
+      </div>
+      <div class="pick-radio"></div>
+    </div>`;
+  }).join('');
+}
+
+function pickSkill(id) {
+  selectedSkillId = id;
+  document.querySelectorAll('.skill-pick').forEach(el => el.classList.remove('sel'));
+  document.getElementById('sp-' + id).classList.add('sel');
+  updateCTA();
+}
+
+function pickPlan(days, price) {
+  selectedDays  = days;
+  selectedPrice = price;
+  document.querySelectorAll('.plan-opt').forEach(el => el.classList.remove('sel'));
+  document.getElementById('plan-' + days).classList.add('sel');
+  updateCTA();
+}
+
+function updateCTA() {
+  const btn = document.getElementById('cta-btn');
+  if (selectedSkillId) {
+    btn.disabled = false;
+    btn.textContent = `立即置頂 ${selectedDays} 天 — NT$${selectedPrice} →`;
+  } else {
+    btn.disabled = true;
+    btn.textContent = '選擇技能後付款 →';
+  }
+}
+
+async function startSponsor() {
+  if (!selectedSkillId) return;
+  document.getElementById('loading-ov').classList.add('show');
+
+  try {
+    const priceId = SPONSOR_PRICES[selectedDays].priceId;
+    const res = await fetch(`${API_BASE}/api/create-checkout-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        priceId,
+        userId:     currentUser.id,
+        email:      currentUser.email,
+        mode:       'payment',          // 一次性付款（非訂閱）
+        metadata:   { skillId: selectedSkillId, days: selectedDays, type: 'sponsor' },
+        successUrl: `${window.location.origin}/sponsor-success.html`,
+        cancelUrl:  window.location.href,
+      }),
+    });
+    const { url, error } = await res.json();
+    if (error) throw new Error(error);
+    window.location.href = url;
+  } catch (err) {
+    document.getElementById('loading-ov').classList.remove('show');
+    showToast('付款連結建立失敗，請稍後再試');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

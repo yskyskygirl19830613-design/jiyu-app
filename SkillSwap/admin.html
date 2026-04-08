@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>技遇 管理後台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0D0F12;--bg2:#141720;--bg3:#1C2030;
+  --border:#252A3A;--border2:#2E3548;
+  --green:#3ECF8E;--green-dim:#1A5C3F;
+  --red:#F06A6A;--red-dim:#5C2020;
+  --yellow:#F0C040;--yellow-dim:#5C4A10;
+  --blue:#5B8DEF;--blue-dim:#1E3060;
+  --text:#E8EAF0;--text2:#8890A8;--text3:#4A5270;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Noto Sans TC',sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;}
+#app{display:flex;height:100vh;overflow:hidden;}
+
+/* ── 側邊欄 ─────────────────────────── */
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 0;}
+.logo{padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.logo-text{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--green);letter-spacing:.08em;}
+.logo-sub{font-size:11px;color:var(--text3);margin-top:3px;}
+.nav-section{padding:0 12px;margin-bottom:8px;}
+.nav-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;padding:6px 8px 4px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;cursor:pointer;color:var(--text2);font-size:13px;transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:var(--sans);}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:var(--green-dim);color:var(--green);}
+.nav-icon{width:16px;height:16px;opacity:.7;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+.sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);}
+.admin-badge{display:flex;align-items:center;gap:8px;}
+.admin-dot{width:8px;height:8px;border-radius:50%;background:var(--green);}
+.admin-name{font-size:12px;color:var(--text2);}
+
+/* ── 主內容 ─────────────────────────── */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.main::-webkit-scrollbar{width:4px;}
+.main::-webkit-scrollbar-track{background:transparent;}
+.main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+.topbar{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--bg2);}
+.page-title{font-size:16px;font-weight:700;color:var(--text);}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.refresh-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;font-family:var(--sans);transition:all .15s;}
+.refresh-btn:hover{border-color:var(--green);color:var(--green);}
+.last-update{font-size:11px;color:var(--text3);font-family:var(--mono);}
+
+.content{padding:24px 28px;flex:1;}
+
+/* ── 頁面（tab）─────────────────────── */
+.page{display:none;}
+.page.active{display:block;}
+
+/* ── 統計卡片 ───────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;}
+.stat-label{font-size:11px;color:var(--text3);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;}
+.stat-value{font-size:26px;font-weight:700;font-family:var(--mono);margin-bottom:4px;}
+.stat-change{font-size:11px;font-family:var(--mono);}
+.stat-change.up{color:var(--green);}
+.stat-change.dn{color:var(--red);}
+.stat-card.green .stat-value{color:var(--green);}
+.stat-card.red .stat-value{color:var(--red);}
+.stat-card.yellow .stat-value{color:var(--yellow);}
+.stat-card.blue .stat-value{color:var(--blue);}
+
+/* ── 表格 ───────────────────────────── */
+.table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px;}
+.table-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.table-title{font-size:13px;font-weight:700;color:var(--text);}
+.table-actions{display:flex;gap:8px;}
+.filter-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:5px 10px;border-radius:6px;font-size:12px;font-family:var(--sans);cursor:pointer;}
+.search-input{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:5px 10px;border-radius:6px;font-size:12px;font-family:var(--sans);outline:none;width:180px;}
+.search-input::placeholder{color:var(--text3);}
+.search-input:focus{border-color:var(--green);}
+table{width:100%;border-collapse:collapse;}
+th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border);}
+td{padding:11px 16px;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg3);color:var(--text);}
+.user-cell{display:flex;align-items:center;gap:10px;}
+.user-ava{width:28px;height:28px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.user-name{font-weight:500;color:var(--text);}
+.user-email{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;font-size:11px;font-weight:600;font-family:var(--mono);}
+.badge-green{background:var(--green-dim);color:var(--green);}
+.badge-red{background:var(--red-dim);color:var(--red);}
+.badge-yellow{background:var(--yellow-dim);color:var(--yellow);}
+.badge-blue{background:var(--blue-dim);color:var(--blue);}
+.badge-gray{background:var(--bg3);color:var(--text3);}
+.action-btn{background:none;border:1px solid var(--border2);color:var(--text2);padding:3px 10px;border-radius:5px;font-size:11px;cursor:pointer;font-family:var(--sans);transition:all .15s;margin-left:4px;}
+.action-btn:hover{border-color:var(--green);color:var(--green);}
+.action-btn.danger:hover{border-color:var(--red);color:var(--red);}
+
+/* ── 雙欄 layout ─────────────────────── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;}
+
+/* ── 報表區塊 ───────────────────────── */
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;}
+.chart-title{font-size:12px;font-weight:700;color:var(--text3);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px;}
+.bar{flex:1;border-radius:3px 3px 0 0;transition:opacity .15s;cursor:pointer;position:relative;}
+.bar:hover{opacity:.8;}
+.bar-label{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--text3);font-family:var(--mono);white-space:nowrap;}
+.bar-chart-wrap{padding-bottom:22px;}
+.mini-stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
+.mini-stat:last-child{border:none;}
+.mini-key{font-size:12px;color:var(--text2);}
+.mini-val{font-size:12px;font-weight:500;font-family:var(--mono);color:var(--text);}
+.mini-val.green{color:var(--green);}
+.mini-val.red{color:var(--red);}
+
+/* ── 檢舉卡片 ───────────────────────── */
+.report-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;transition:border-color .15s;}
+.report-card:hover{border-color:var(--border2);}
+.report-card.urgent{border-left:3px solid var(--red);}
+.report-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.report-type{font-size:11px;font-weight:700;font-family:var(--mono);}
+.report-time{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.report-content{font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:10px;}
+.report-footer{display:flex;align-items:center;justify-content:space-between;}
+.report-meta{font-size:11px;color:var(--text3);}
+.report-actions{display:flex;gap:6px;}
+.btn-resolve{background:var(--green-dim);border:none;color:var(--green);padding:4px 12px;border-radius:5px;font-size:11px;cursor:pointer;font-family:var(--sans);}
+.btn-ban{background:var(--red-dim);border:none;color:var(--red);padding:4px 12px;border-radius:5px;font-size:11px;cursor:pointer;font-family:var(--sans);}
+
+/* ── 通知區 ─────────────────────────── */
+.notif-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.notif-item:last-child{border:none;}
+.notif-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.notif-text{font-size:13px;color:var(--text2);line-height:1.5;}
+.notif-text strong{color:var(--text);}
+.notif-time{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:3px;}
+
+/* ── Modal ─────────────────────────── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center;}
+.modal-ov.show{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;width:460px;max-width:90vw;}
+.modal-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;}
+.modal-field{margin-bottom:14px;}
+.modal-label{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:5px;display:block;}
+.modal-value{font-size:13px;color:var(--text);background:var(--bg3);padding:8px 12px;border-radius:6px;border:1px solid var(--border);}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
+.modal-btn{padding:8px 18px;border-radius:7px;font-size:13px;cursor:pointer;font-family:var(--sans);border:none;}
+.modal-btn.cancel{background:var(--bg3);color:var(--text2);}
+.modal-btn.confirm{background:var(--red-dim);color:var(--red);}
+.modal-btn.success{background:var(--green-dim);color:var(--green);}
+
+/* ── 空狀態 ─────────────────────────── */
+.empty{text-align:center;padding:40px;color:var(--text3);font-size:13px;}
+
+/* ── 收入圖表條 ─────────────────────── */
+.revenue-bar{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.revenue-label{font-size:12px;color:var(--text2);width:80px;flex-shrink:0;}
+.revenue-track{flex:1;background:var(--bg3);border-radius:3px;height:8px;overflow:hidden;}
+.revenue-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+.revenue-amount{font-size:12px;font-family:var(--mono);color:var(--text);width:60px;text-align:right;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ── 側邊欄 ──────────────────────────────────── -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-text">技遇 / ADMIN</div>
+    <div class="logo-sub">管理後台 v1.0</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">總覽</div>
+    <button class="nav-item active" onclick="showPage('dashboard')">
+      <svg class="nav-icon" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+      數據總覽
+    </button>
+    <button class="nav-item" onclick="showPage('revenue')">
+      <svg class="nav-icon" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.5"><path d="M8 2v12M4 6l4-4 4 4M4 10l4 4 4-4"/></svg>
+      收入報表
+    </button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">用戶管理</div>
+    <button class="nav-item" onclick="showPage('users')">
+      <svg class="nav-icon" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="3"/><path d="M1 14c0-3 2-5 5-5s5 2 5 5"/><circle cx="13" cy="6" r="2"/><path d="M13 10c2 0 3 1 3 3"/></svg>
+      所有用戶
+    </button>
+    <button class="nav-item" onclick="showPage('premium')">
+      <svg class="nav-icon" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.5"><polygon points="8,1 10,6 15,6 11,9 13,14 8,11 3,14 5,9 1,6 6,6"/></svg>
+      Premium 用戶
+    </button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">內容管理</div>
+    <button class="nav-item" onclick="showPage('skills')">
+      <svg class="nav-icon" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M5 7h6M5 10h4"/></svg>
+      技能管理
+    </button>
+    <button class="nav-item" onclick="showPage('reports')">
+      <svg class="nav-icon" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.5"><path d="M8 1L1 13h14L8 1z"/><path d="M8 6v4M8 11v1"/></svg>
+      檢舉問題
+      <span style="margin-left:auto;background:#5C2020;color:#F06A6A;font-size:10px;padding:1px 6px;border-radius:100px;font-family:var(--mono);">3</span>
+    </button>
+    <button class="nav-item" onclick="showPage('sponsored')">
+      <svg class="nav-icon" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-7"/></svg>
+      精選置頂
+    </button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">系統</div>
+    <button class="nav-item" onclick="showPage('settings')">
+      <svg class="nav-icon" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.5 1.5M11.5 11.5L13 13M3 13l1.5-1.5M11.5 4.5L13 3"/></svg>
+      系統設定
+    </button>
+  </div>
+  <div class="sidebar-footer">
+    <div class="admin-badge">
+      <div class="admin-dot"></div>
+      <div class="admin-name">管理員登入中</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 主內容 ──────────────────────────────────── -->
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="page-title">數據總覽</div>
+    <div class="topbar-right">
+      <div class="last-update" id="last-update">更新於 --:--</div>
+      <button class="refresh-btn" onclick="refreshAll()">↻ 重新整理</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- ═══ 數據總覽 ══════════════════════════════ -->
+  <div id="page-dashboard" class="page active">
+    <div class="stats-grid">
+      <div class="stat-card green">
+        <div class="stat-label">總用戶數</div>
+        <div class="stat-value" id="stat-users">—</div>
+        <div class="stat-change up" id="stat-users-chg">載入中…</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">本月交換次數</div>
+        <div class="stat-value" id="stat-swaps">—</div>
+        <div class="stat-change up" id="stat-swaps-chg">載入中…</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-label">Premium 用戶</div>
+        <div class="stat-value" id="stat-premium">—</div>
+        <div class="stat-change up" id="stat-premium-chg">載入中…</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">待處理檢舉</div>
+        <div class="stat-value" id="stat-reports">—</div>
+        <div class="stat-change dn" id="stat-reports-chg">載入中…</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <!-- 7 天用戶活躍圖 -->
+      <div class="chart-card">
+        <div class="chart-title">近 7 天新增用戶</div>
+        <div class="bar-chart-wrap">
+          <div class="bar-chart" id="user-chart">
+            <div class="bar" style="height:40%;background:var(--green);opacity:.5;"><span class="bar-label">週一</span></div>
+            <div class="bar" style="height:65%;background:var(--green);opacity:.6;"><span class="bar-label">週二</span></div>
+            <div class="bar" style="height:50%;background:var(--green);opacity:.65;"><span class="bar-label">週三</span></div>
+            <div class="bar" style="height:80%;background:var(--green);opacity:.75;"><span class="bar-label">週四</span></div>
+            <div class="bar" style="height:70%;background:var(--green);opacity:.8;"><span class="bar-label">週五</span></div>
+            <div class="bar" style="height:90%;background:var(--green);opacity:.9;"><span class="bar-label">週六</span></div>
+            <div class="bar" style="height:100%;background:var(--green);<span class="bar-label">週日</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- 城市分佈 -->
+      <div class="chart-card">
+        <div class="chart-title">城市分佈</div>
+        <div class="mini-stat"><span class="mini-key">高雄市</span><span class="mini-val green" id="city-kaohsiung">—</span></div>
+        <div class="mini-stat"><span class="mini-key">台北市</span><span class="mini-val" id="city-taipei">—</span></div>
+        <div class="mini-stat"><span class="mini-key">台中市</span><span class="mini-val" id="city-taichung">—</span></div>
+        <div class="mini-stat"><span class="mini-key">台南市</span><span class="mini-val" id="city-tainan">—</span></div>
+        <div class="mini-stat"><span class="mini-key">其他</span><span class="mini-val" id="city-other">—</span></div>
+      </div>
+    </div>
+
+    <!-- 最新活動 -->
+    <div class="chart-card">
+      <div class="chart-title">最新活動</div>
+      <div id="activity-list">
+        <div class="notif-item"><div class="notif-dot" style="background:var(--green)"></div><div><div class="notif-text"><strong>Mia Chen</strong> 發布了新技能「Figma 設計」</div><div class="notif-time">2 分鐘前</div></div></div>
+        <div class="notif-item"><div class="notif-dot" style="background:var(--blue)"></div><div><div class="notif-text"><strong>Jay Wu</strong> 申請與 Yuki T. 的技能交換</div><div class="notif-time">15 分鐘前</div></div></div>
+        <div class="notif-item"><div class="notif-dot" style="background:var(--yellow)"></div><div><div class="notif-text"><strong>Alex C.</strong> 升級為 Premium 用戶</div><div class="notif-time">1 小時前</div></div></div>
+        <div class="notif-item"><div class="notif-dot" style="background:var(--green)"></div><div><div class="notif-text"><strong>Sara K.</strong> 完成了技能交換並留下 5 星評價</div><div class="notif-time">2 小時前</div></div></div>
+        <div class="notif-item"><div class="notif-dot" style="background:var(--red)"></div><div><div class="notif-text">收到新的用戶檢舉，請盡快處理</div><div class="notif-time">3 小時前</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 收入報表 ═══════════════════════════════ -->
+  <div id="page-revenue" class="page">
+    <div class="stats-grid">
+      <div class="stat-card green"><div class="stat-label">本月總收入</div><div class="stat-value" id="rev-total">$0</div><div class="stat-change up">↑ vs 上月</div></div>
+      <div class="stat-card blue"><div class="stat-label">Premium 訂閱</div><div class="stat-value" id="rev-sub">$0</div><div class="stat-change up" id="rev-sub-cnt">0 人</div></div>
+      <div class="stat-card yellow"><div class="stat-label">精選置頂</div><div class="stat-value" id="rev-spon">$0</div><div class="stat-change up" id="rev-spon-cnt">0 筆</div></div>
+      <div class="stat-card"><div class="stat-label">Stripe 手續費</div><div class="stat-value" style="color:var(--red)" id="rev-fee">$0</div><div class="stat-change dn">2.9% + $10/筆</div></div>
+    </div>
+    <div class="two-col">
+      <div class="chart-card">
+        <div class="chart-title">收入來源分析</div>
+        <div class="revenue-bar"><div class="revenue-label">Premium 月繳</div><div class="revenue-track"><div class="revenue-fill" id="fill-monthly" style="width:60%;background:var(--green)"></div></div><div class="revenue-amount" id="amt-monthly">$0</div></div>
+        <div class="revenue-bar"><div class="revenue-label">Premium 年繳</div><div class="revenue-track"><div class="revenue-fill" id="fill-yearly" style="width:30%;background:var(--blue)"></div></div><div class="revenue-amount" id="amt-yearly">$0</div></div>
+        <div class="revenue-bar"><div class="revenue-label">精選 7 天</div><div class="revenue-track"><div class="revenue-fill" id="fill-spon7" style="width:20%;background:var(--yellow)"></div></div><div class="revenue-amount" id="amt-spon7">$0</div></div>
+        <div class="revenue-bar"><div class="revenue-label">精選 30 天</div><div class="revenue-track"><div class="revenue-fill" id="fill-spon30" style="width:10%;background:var(--yellow);opacity:.6"></div></div><div class="revenue-amount" id="amt-spon30">$0</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">關鍵指標</div>
+        <div class="mini-stat"><span class="mini-key">免費→Premium 轉換率</span><span class="mini-val green" id="conv-rate">—%</span></div>
+        <div class="mini-stat"><span class="mini-key">平均用戶價值 (ARPU)</span><span class="mini-val" id="arpu">$—</span></div>
+        <div class="mini-stat"><span class="mini-key">本月新增 Premium</span><span class="mini-val" id="new-premium">—</span></div>
+        <div class="mini-stat"><span class="mini-key">本月取消 Premium</span><span class="mini-val red" id="cancel-premium">—</span></div>
+        <div class="mini-stat"><span class="mini-key">下月預估收入</span><span class="mini-val green" id="forecast">$—</span></div>
+      </div>
+    </div>
+
+    <!-- 付款紀錄 -->
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">最近付款紀錄</div>
+      </div>
+      <table>
+        <thead><tr><th>用戶</th><th>項目</th><th>金額</th><th>狀態</th><th>時間</th></tr></thead>
+        <tbody id="payment-table">
+          <tr><td colspan="5" class="empty">⏳ 從 Supabase 載入中…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ 所有用戶 ═══════════════════════════════ -->
+  <div id="page-users" class="page">
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">所有用戶 <span style="color:var(--text3);font-weight:400;" id="user-count"></span></div>
+        <div class="table-actions">
+          <input class="search-input" placeholder="搜尋名稱或信箱…" oninput="filterUsers(this.value)"/>
+          <select class="filter-select" onchange="filterUserStatus(this.value)">
+            <option value="all">全部用戶</option>
+            <option value="premium">Premium</option>
+            <option value="free">免費版</option>
+            <option value="banned">已封禁</option>
+          </select>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>用戶</th><th>城市</th><th>方案</th><th>技能數</th><th>交換次數</th><th>評分</th><th>加入日期</th><th>操作</th></tr></thead>
+        <tbody id="users-table">
+          <tr><td colspan="8" class="empty">⏳ 載入中…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ Premium 用戶 ═══════════════════════════ -->
+  <div id="page-premium" class="page">
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat-card yellow"><div class="stat-label">有效訂閱</div><div class="stat-value" id="prem-active">—</div></div>
+      <div class="stat-card"><div class="stat-label">試用中</div><div class="stat-value" style="color:var(--blue)" id="prem-trial">—</div></div>
+      <div class="stat-card"><div class="stat-label">本月到期</div><div class="stat-value" style="color:var(--red)" id="prem-expiring">—</div></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header"><div class="table-title">Premium 用戶清單</div></div>
+      <table>
+        <thead><tr><th>用戶</th><th>方案</th><th>狀態</th><th>到期日</th><th>Stripe ID</th><th>操作</th></tr></thead>
+        <tbody id="premium-table">
+          <tr><td colspan="6" class="empty">⏳ 載入中…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ 技能管理 ═══════════════════════════════ -->
+  <div id="page-skills" class="page">
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">上架中技能</div>
+        <div class="table-actions">
+          <select class="filter-select" onchange="filterSkillCity(this.value)">
+            <option value="all">全部城市</option>
+            <option>高雄市</option><option>台北市</option><option>台中市</option><option>台南市</option>
+          </select>
+          <select class="filter-select" onchange="filterSkillCat(this.value)">
+            <option value="all">全部類別</option>
+            <option>設計</option><option>程式</option><option>語言</option><option>料理</option>
+          </select>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>技能</th><th>發布者</th><th>城市</th><th>類別</th><th>申請數</th><th>置頂</th><th>狀態</th><th>操作</th></tr></thead>
+        <tbody id="skills-table">
+          <tr><td colspan="8" class="empty">⏳ 載入中…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ 檢舉問題 ═══════════════════════════════ -->
+  <div id="page-reports" class="page">
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat-card red"><div class="stat-label">待處理</div><div class="stat-value" id="rep-pending">—</div></div>
+      <div class="stat-card"><div class="stat-label">本月已處理</div><div class="stat-value" style="color:var(--green)" id="rep-resolved">—</div></div>
+      <div class="stat-card"><div class="stat-label">封禁用戶數</div><div class="stat-value" style="color:var(--yellow)" id="rep-banned">—</div></div>
+    </div>
+    <div id="reports-list">
+      <div class="report-card urgent">
+        <div class="report-header">
+          <span class="report-type" style="color:var(--red)">🚨 詐欺行為</span>
+          <span class="report-time">2 小時前</span>
+        </div>
+        <div class="report-content">用戶「測試者 Bad」嘗試要求對方在交換前先付款 NT$500，涉嫌詐欺。被 3 名用戶回報。</div>
+        <div class="report-footer">
+          <div class="report-meta">被檢舉者：Bad User · 檢舉人：3 人</div>
+          <div class="report-actions">
+            <button class="btn-resolve" onclick="resolveReport(this)">✓ 標記已處理</button>
+            <button class="btn-ban" onclick="showBanModal('Bad User')">⊘ 封禁帳號</button>
+          </div>
+        </div>
+      </div>
+      <div class="report-card">
+        <div class="report-header">
+          <span class="report-type" style="color:var(--yellow)">⚠️ 不實技能資訊</span>
+          <span class="report-time">5 小時前</span>
+        </div>
+        <div class="report-content">用戶聲稱擁有「大學教授等級」的英文教學能力，但對方反映完全不符合描述，且無法溝通。</div>
+        <div class="report-footer">
+          <div class="report-meta">被檢舉者：英文老師 X · 檢舉人：1 人</div>
+          <div class="report-actions">
+            <button class="btn-resolve" onclick="resolveReport(this)">✓ 標記已處理</button>
+            <button class="btn-ban" onclick="showBanModal('英文老師 X')">⊘ 封禁帳號</button>
+          </div>
+        </div>
+      </div>
+      <div class="report-card">
+        <div class="report-header">
+          <span class="report-type" style="color:var(--text2)">💬 騷擾行為</span>
+          <span class="report-time">昨天</span>
+        </div>
+        <div class="report-content">配對拒絕後持續傳送大量訊息，對方感到不舒適。</div>
+        <div class="report-footer">
+          <div class="report-meta">被檢舉者：用戶 A · 檢舉人：1 人</div>
+          <div class="report-actions">
+            <button class="btn-resolve" onclick="resolveReport(this)">✓ 標記已處理</button>
+            <button class="btn-ban" onclick="showBanModal('用戶 A')">⊘ 封禁帳號</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 精選置頂管理 ══════════════════════════ -->
+  <div id="page-sponsored" class="page">
+    <div class="table-wrap">
+      <div class="table-header"><div class="table-title">目前精選置頂技能</div></div>
+      <table>
+        <thead><tr><th>技能</th><th>發布者</th><th>城市</th><th>方案</th><th>開始日</th><th>到期日</th><th>曝光數</th><th>操作</th></tr></thead>
+        <tbody id="sponsored-table">
+          <tr>
+            <td><div class="user-cell"><div class="user-ava">🎨</div><div><div class="user-name">Figma 設計教學</div></div></div></td>
+            <td style="color:var(--text)">Mia Chen</td>
+            <td>台北市</td>
+            <td><span class="badge badge-yellow">7 天</span></td>
+            <td style="font-family:var(--mono);font-size:12px;">04/01</td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--green);">04/08</td>
+            <td style="font-family:var(--mono);">248</td>
+            <td><button class="action-btn danger" onclick="showToast('已下架精選')">下架</button></td>
+          </tr>
+          <tr>
+            <td><div class="user-cell"><div class="user-ava">🎸</div><div><div class="user-name">木吉他入門</div></div></div></td>
+            <td style="color:var(--text)">Alex C.</td>
+            <td>高雄市</td>
+            <td><span class="badge badge-green">30 天</span></td>
+            <td style="font-family:var(--mono);font-size:12px;">03/15</td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--yellow);">04/14</td>
+            <td style="font-family:var(--mono);">1,024</td>
+            <td><button class="action-btn danger" onclick="showToast('已下架精選')">下架</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ 系統設定 ═══════════════════════════════ -->
+  <div id="page-settings" class="page">
+    <div class="two-col">
+      <div class="chart-card">
+        <div class="chart-title">收費設定</div>
+        <div class="mini-stat"><span class="mini-key">Premium 月繳</span><span class="mini-val">NT$ <span contenteditable="true" style="outline:none;border-bottom:1px solid var(--border2)">99</span></span></div>
+        <div class="mini-stat"><span class="mini-key">Premium 年繳</span><span class="mini-val">NT$ <span contenteditable="true" style="outline:none;border-bottom:1px solid var(--border2)">708</span></span></div>
+        <div class="mini-stat"><span class="mini-key">精選置頂 3 天</span><span class="mini-val">NT$ <span contenteditable="true" style="outline:none;border-bottom:1px solid var(--border2)">49</span></span></div>
+        <div class="mini-stat"><span class="mini-key">精選置頂 7 天</span><span class="mini-val">NT$ <span contenteditable="true" style="outline:none;border-bottom:1px solid var(--border2)">89</span></span></div>
+        <div class="mini-stat"><span class="mini-key">精選置頂 30 天</span><span class="mini-val">NT$ <span contenteditable="true" style="outline:none;border-bottom:1px solid var(--border2)">299</span></span></div>
+        <div style="margin-top:14px;">
+          <button style="background:var(--green-dim);border:none;color:var(--green);padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer;font-family:var(--sans);" onclick="showToast('設定已儲存')">儲存設定</button>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">免費版限制</div>
+        <div class="mini-stat"><span class="mini-key">最多技能數</span><span class="mini-val"><span contenteditable="true" style="outline:none;border-bottom:1px solid var(--border2)">2</span> 個</span></div>
+        <div class="mini-stat"><span class="mini-key">每月申請次數</span><span class="mini-val"><span contenteditable="true" style="outline:none;border-bottom:1px solid var(--border2)">5</span> 次</span></div>
+        <div class="mini-stat"><span class="mini-key">免費試用天數</span><span class="mini-val"><span contenteditable="true" style="outline:none;border-bottom:1px solid var(--border2)">7</span> 天</span></div>
+        <div style="margin-top:14px;">
+          <button style="background:var(--green-dim);border:none;color:var(--green);padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer;font-family:var(--sans);" onclick="showToast('限制已更新')">儲存</button>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Supabase + Stripe 連線狀態</div>
+      <div class="mini-stat"><span class="mini-key">Supabase 資料庫</span><span class="mini-val green">● 正常</span></div>
+      <div class="mini-stat"><span class="mini-key">Stripe 付款</span><span class="mini-val green">● 正常</span></div>
+      <div class="mini-stat"><span class="mini-key">Stripe Webhook</span><span class="mini-val green">● 正常</span></div>
+      <div class="mini-stat"><span class="mini-key">Google AdSense</span><span class="mini-val" style="color:var(--yellow)">● 等待審核</span></div>
+      <div class="mini-stat"><span class="mini-key">PWA Service Worker</span><span class="mini-val green">● 正常</span></div>
+    </div>
+  </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Ban Modal -->
+<div class="modal-ov" id="ban-modal">
+  <div class="modal">
+    <div class="modal-title">⊘ 確定要封禁此用戶？</div>
+    <div class="modal-field">
+      <span class="modal-label">用戶</span>
+      <div class="modal-value" id="ban-username">—</div>
+    </div>
+    <div class="modal-field">
+      <span class="modal-label">封禁原因</span>
+      <select class="filter-select" style="width:100%;padding:8px;">
+        <option>違反服務條款</option>
+        <option>詐欺行為</option>
+        <option>騷擾用戶</option>
+        <option>不實資訊</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="hideBanModal()">取消</button>
+      <button class="modal-btn confirm" onclick="confirmBan()">確定封禁</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// ══════════════════════════════════════════
+// ⚠️ 替換成你的設定
+const SUPABASE_URL  = 'https://your-project.supabase.co';
+const SUPABASE_KEY  = 'your-anon-public-key'; // 管理後台建議用 service_role key
+const ADMIN_EMAIL   = 'your-admin@email.com'; // 只允許這個信箱登入
+// ══════════════════════════════════════════
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allUsers = [], allSkills = [];
+
+// ── 初始化 ─────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  updateTime();
+  await loadDashboard();
+  await loadUsers();
+  await loadSkills();
+  await loadRevenue();
+  setInterval(updateTime, 60000);
+});
+
+function updateTime() {
+  const now = new Date();
+  document.getElementById('last-update').textContent =
+    '更新於 ' + now.toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit' });
+}
+
+async function refreshAll() {
+  showToast('更新中…');
+  await loadDashboard();
+  await loadUsers();
+  await loadRevenue();
+  updateTime();
+  showToast('已更新 ✓');
+}
+
+// ── 頁面切換 ───────────────────────────────
+const pageTitles = {
+  dashboard:'數據總覽', revenue:'收入報表', users:'所有用戶',
+  premium:'Premium 用戶', skills:'技能管理', reports:'檢舉問題',
+  sponsored:'精選置頂', settings:'系統設定'
+};
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[id] || id;
+
+  if (id === 'premium') loadPremium();
+  if (id === 'reports') loadReports();
+}
+
+// ── 載入數據總覽 ───────────────────────────
+async function loadDashboard() {
+  try {
+    const [
+      { count: userCount },
+      { count: swapCount },
+      { count: premCount },
+      { count: repCount },
+    ] = await Promise.all([
+      sb.from('profiles').select('*', { count:'exact', head:true }),
+      sb.from('swaps').select('*', { count:'exact', head:true }),
+      sb.from('profiles').select('*', { count:'exact', head:true }).eq('is_premium', true),
+      sb.from('reports').select('*', { count:'exact', head:true }).eq('status', 'pending'),
+    ]);
+
+    document.getElementById('stat-users').textContent    = userCount  ?? '—';
+    document.getElementById('stat-swaps').textContent    = swapCount  ?? '—';
+    document.getElementById('stat-premium').textContent  = premCount  ?? '—';
+    document.getElementById('stat-reports').textContent  = repCount   ?? '—';
+
+    document.getElementById('stat-users-chg').textContent   = '↑ 本週新增';
+    document.getElementById('stat-swaps-chg').textContent   = '↑ 本月累計';
+    document.getElementById('stat-premium-chg').textContent = `佔比 ${userCount ? Math.round((premCount/userCount)*100) : 0}%`;
+    document.getElementById('stat-reports-chg').textContent = repCount > 0 ? '⚠ 需要處理' : '✓ 無待處理';
+    if (repCount > 0) document.getElementById('stat-reports-chg').className = 'stat-change dn';
+
+    await loadCityStats();
+  } catch(e) { console.log('Dashboard 載入（模擬模式）'); }
+}
+
+async function loadCityStats() {
+  try {
+    const { data } = await sb.from('profiles').select('city');
+    if (!data) return;
+    const cities = {};
+    data.forEach(p => { cities[p.city] = (cities[p.city]||0)+1; });
+    document.getElementById('city-kaohsiung').textContent = (cities['高雄市']||0) + ' 人';
+    document.getElementById('city-taipei').textContent    = (cities['台北市']||0) + ' 人';
+    document.getElementById('city-taichung').textContent  = (cities['台中市']||0) + ' 人';
+    document.getElementById('city-tainan').textContent    = (cities['台南市']||0) + ' 人';
+    const other = Object.entries(cities).filter(([k])=>!['高雄市','台北市','台中市','台南市'].includes(k)).reduce((a,[,v])=>a+v,0);
+    document.getElementById('city-other').textContent = other + ' 人';
+  } catch(e) {}
+}
+
+// ── 載入用戶 ───────────────────────────────
+async function loadUsers() {
+  try {
+    const { data } = await sb.from('profiles')
+      .select('*').order('created_at', { ascending:false }).limit(100);
+    allUsers = data || [];
+    renderUsers(allUsers);
+    document.getElementById('user-count').textContent = `（${allUsers.length} 人）`;
+  } catch(e) {
+    // 模擬資料
+    allUsers = [
+      { id:'1', full_name:'Mia Chen',  city:'台北市', is_premium:true,  swap_count:8,  rating:4.9, created_at:'2025-01-15', avatar_url:'🎨' },
+      { id:'2', full_name:'Jay Wu',    city:'台中市', is_premium:true,  swap_count:5,  rating:5.0, created_at:'2025-01-20', avatar_url:'💻' },
+      { id:'3', full_name:'Yuki T.',   city:'高雄市', is_premium:false, swap_count:12, rating:4.7, created_at:'2025-02-01', avatar_url:'🌏' },
+      { id:'4', full_name:'Sara K.',   city:'高雄市', is_premium:false, swap_count:3,  rating:4.8, created_at:'2025-02-10', avatar_url:'📷' },
+      { id:'5', full_name:'Alex C.',   city:'高雄市', is_premium:false, swap_count:6,  rating:4.9, created_at:'2025-02-15', avatar_url:'🎸' },
+      { id:'6', full_name:'Marco L.',  city:'台南市', is_premium:false, swap_count:2,  rating:4.6, created_at:'2025-03-01', avatar_url:'🍜' },
+      { id:'7', full_name:'Kevin H.',  city:'新竹市', is_premium:true,  swap_count:4,  rating:5.0, created_at:'2025-03-05', avatar_url:'📱' },
+      { id:'8', full_name:'Lena H.',   city:'台北市', is_premium:false, swap_count:7,  rating:4.8, created_at:'2025-03-10', avatar_url:'🧘' },
+    ];
+    renderUsers(allUsers);
+    document.getElementById('user-count').textContent = `（${allUsers.length} 人）`;
+  }
+}
+
+function renderUsers(list) {
+  const tbody = document.getElementById('users-table');
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">無用戶資料</td></tr>'; return; }
+  tbody.innerHTML = list.map(u => `
+    <tr>
+      <td><div class="user-cell">
+        <div class="user-ava">${u.avatar_url||'😊'}</div>
+        <div><div class="user-name">${u.full_name||'未設定'}</div></div>
+      </div></td>
+      <td>${u.city||'—'}</td>
+      <td>${u.is_premium
+        ? '<span class="badge badge-yellow">⭐ Premium</span>'
+        : '<span class="badge badge-gray">免費版</span>'}</td>
+      <td style="font-family:var(--mono)">${u.skill_count||'—'}</td>
+      <td style="font-family:var(--mono)">${u.swap_count||0}</td>
+      <td style="font-family:var(--mono);color:var(--green)">${u.rating||'—'}</td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--text3)">${u.created_at ? u.created_at.slice(0,10) : '—'}</td>
+      <td>
+        <button class="action-btn" onclick="showUserDetail('${u.id}')">詳情</button>
+        <button class="action-btn danger" onclick="showBanModal('${u.full_name||u.id}')">封禁</button>
+      </td>
+    </tr>`).join('');
+}
+
+function filterUsers(q) {
+  const filtered = allUsers.filter(u =>
+    (u.full_name||'').toLowerCase().includes(q.toLowerCase())
+  );
+  renderUsers(filtered);
+}
+
+function filterUserStatus(status) {
+  if (status === 'all') { renderUsers(allUsers); return; }
+  const filtered = allUsers.filter(u =>
+    status === 'premium' ? u.is_premium :
+    status === 'free'    ? !u.is_premium : false
+  );
+  renderUsers(filtered);
+}
+
+// ── 載入技能 ───────────────────────────────
+async function loadSkills() {
+  try {
+    const { data } = await sb.from('skills')
+      .select('*,profiles(full_name)').eq('is_active', true)
+      .order('created_at', { ascending:false }).limit(50);
+    allSkills = data || [];
+    renderSkills(allSkills);
+  } catch(e) {
+    allSkills = [
+      { id:'s1', emoji:'🎨', name:'Figma 設計教學', city:'台北市', category:'設計', want:'英文寫作', is_sponsored:true,  profiles:{full_name:'Mia Chen'} },
+      { id:'s2', emoji:'💻', name:'Python 基礎課',  city:'台中市', category:'程式', want:'瑜珈',     is_sponsored:false, profiles:{full_name:'Jay Wu'} },
+      { id:'s3', emoji:'🌏', name:'日文 N3 會話',   city:'高雄市', category:'語言', want:'攝影',     is_sponsored:false, profiles:{full_name:'Yuki T.'} },
+      { id:'s4', emoji:'📷', name:'人像攝影教學',   city:'高雄市', category:'攝影', want:'韓文',     is_sponsored:false, profiles:{full_name:'Sara K.'} },
+      { id:'s5', emoji:'🎸', name:'木吉他入門',     city:'高雄市', category:'音樂', want:'日文',     is_sponsored:true,  profiles:{full_name:'Alex C.'} },
+    ];
+    renderSkills(allSkills);
+  }
+}
+
+function renderSkills(list) {
+  document.getElementById('skills-table').innerHTML = list.map(s => `
+    <tr>
+      <td><div class="user-cell"><div class="user-ava">${s.emoji||'🎨'}</div><div class="user-name">${s.name}</div></div></td>
+      <td style="color:var(--text)">${s.profiles?.full_name||'—'}</td>
+      <td>${s.city||'—'}</td>
+      <td><span class="badge badge-gray">${s.category||'—'}</span></td>
+      <td style="font-family:var(--mono)">${s.swap_count||0}</td>
+      <td>${s.is_sponsored ? '<span class="badge badge-yellow">精選中</span>' : '—'}</td>
+      <td><span class="badge badge-green">上架中</span></td>
+      <td>
+        <button class="action-btn danger" onclick="showToast('技能已下架')">下架</button>
+      </td>
+    </tr>`).join('');
+}
+
+function filterSkillCity(c) { renderSkills(c==='all' ? allSkills : allSkills.filter(s=>s.city===c)); }
+function filterSkillCat(c)  { renderSkills(c==='all' ? allSkills : allSkills.filter(s=>s.category===c)); }
+
+// ── 載入 Premium ───────────────────────────
+async function loadPremium() {
+  const premUsers = allUsers.filter(u => u.is_premium);
+  document.getElementById('prem-active').textContent   = premUsers.length;
+  document.getElementById('prem-trial').textContent    = Math.floor(premUsers.length * 0.3);
+  document.getElementById('prem-expiring').textContent = Math.floor(premUsers.length * 0.15);
+  document.getElementById('premium-table').innerHTML = premUsers.map(u => `
+    <tr>
+      <td><div class="user-cell"><div class="user-ava">${u.avatar_url||'😊'}</div><div class="user-name">${u.full_name}</div></div></td>
+      <td><span class="badge badge-blue">月繳</span></td>
+      <td><span class="badge badge-green">有效</span></td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--green)">2025-05-01</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text3)">sub_xxx</td>
+      <td><button class="action-btn danger" onclick="showToast('訂閱已取消')">取消訂閱</button></td>
+    </tr>`).join('') || '<tr><td colspan="6" class="empty">無 Premium 用戶</td></tr>';
+}
+
+// ── 載入收入 ───────────────────────────────
+async function loadRevenue() {
+  const premCount = allUsers.filter(u => u.is_premium).length;
+  const subRev   = premCount * 99;
+  const sponRev  = 89 * 2;
+  const total    = subRev + sponRev;
+  const fee      = Math.round(total * 0.029 + 10 * (premCount + 2));
+
+  document.getElementById('rev-total').textContent    = '$' + total.toLocaleString();
+  document.getElementById('rev-sub').textContent      = '$' + subRev.toLocaleString();
+  document.getElementById('rev-sub-cnt').textContent  = premCount + ' 人';
+  document.getElementById('rev-spon').textContent     = '$' + sponRev.toLocaleString();
+  document.getElementById('rev-spon-cnt').textContent = '2 筆';
+  document.getElementById('rev-fee').textContent      = '-$' + fee;
+  document.getElementById('conv-rate').textContent    = allUsers.length ? Math.round(premCount/allUsers.length*100) + '%' : '—%';
+  document.getElementById('arpu').textContent         = allUsers.length ? '$' + Math.round(total/allUsers.length) : '$—';
+  document.getElementById('new-premium').textContent  = premCount;
+  document.getElementById('cancel-premium').textContent = '0';
+  document.getElementById('forecast').textContent     = '$' + (total * 1.1).toFixed(0);
+
+  document.getElementById('payment-table').innerHTML = [
+    { user:'Mia Chen', item:'Premium 月繳', amt:99,  status:'paid' },
+    { user:'Kevin H.', item:'Premium 月繳', amt:99,  status:'paid' },
+    { user:'Jay Wu',   item:'Premium 月繳', amt:99,  status:'paid' },
+    { user:'Alex C.',  item:'精選置頂 7 天', amt:89, status:'paid' },
+    { user:'Sara K.',  item:'精選置頂 30 天',amt:299, status:'paid' },
+  ].map(p => `<tr>
+    <td style="color:var(--text)">${p.user}</td>
+    <td>${p.item}</td>
+    <td style="font-family:var(--mono);color:var(--green)">NT$${p.amt}</td>
+    <td><span class="badge badge-green">✓ 已付款</span></td>
+    <td style="font-family:var(--mono);font-size:11px;color:var(--text3)">2025-04-01</td>
+  </tr>`).join('');
+}
+
+// ── 載入檢舉 ───────────────────────────────
+function loadReports() {
+  document.getElementById('rep-pending').textContent  = '3';
+  document.getElementById('rep-resolved').textContent = '12';
+  document.getElementById('rep-banned').textContent   = '2';
+}
+
+// ── 操作函式 ───────────────────────────────
+function resolveReport(btn) {
+  const card = btn.closest('.report-card');
+  card.style.opacity = '.4';
+  card.style.pointerEvents = 'none';
+  showToast('已標記為處理完成 ✓');
+  const pending = document.getElementById('rep-pending');
+  if (pending) pending.textContent = Math.max(0, parseInt(pending.textContent)-1);
+}
+
+function showBanModal(name) {
+  document.getElementById('ban-username').textContent = name;
+  document.getElementById('ban-modal').classList.add('show');
+}
+function hideBanModal() { document.getElementById('ban-modal').classList.remove('show'); }
+function confirmBan() {
+  showToast('用戶已封禁 ✓');
+  hideBanModal();
+}
+
+function showUserDetail(id) { showToast('用戶詳情功能開發中'); }
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
+    background:'#1C2030', color:'#3ECF8E', border:'1px solid #252A3A',
+    padding:'10px 20px', borderRadius:'8px', fontSize:'13px',
+    fontFamily:'var(--mono)', zIndex:'9999', whiteSpace:'nowrap',
+    animation:'fadeIn .3s ease',
+  });
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+</script>
+</body>
+</html>

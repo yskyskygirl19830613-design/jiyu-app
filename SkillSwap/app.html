@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>技遇 JiYu</title>
+<meta name="theme-color" content="#3D9970"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="技遇"/>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--g:#3D9970;--gl:#E8F5EF;--gd:#2D7A55;--t:#111;--t2:#888;--bd:#EBEBEB;--bg2:#F7F7F7;}
+html,body{height:100%;background:#F2F0EB;font-family:'Plus Jakarta Sans',-apple-system,sans-serif;}
+#app{max-width:430px;margin:0 auto;height:100dvh;background:#fff;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+.screen{display:none;flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:72px;}
+.screen.active{display:block;}
+.screen::-webkit-scrollbar{display:none;}
+/* topbar */
+.tb{padding:calc(env(safe-area-inset-top,0px)+16px) 20px 10px;}
+.tb-row{display:flex;align-items:center;justify-content:space-between;}
+.tb-title{font-family:'Instrument Serif',serif;font-size:26px;color:var(--t);line-height:1.2;}
+.tb-title i{font-style:italic;color:var(--g);}
+.ava-btn{width:36px;height:36px;border-radius:11px;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:18px;border:none;cursor:pointer;}
+/* search + chips */
+.srch{margin:0 20px 12px;display:flex;align-items:center;gap:9px;background:var(--bg2);border-radius:13px;padding:10px 14px;}
+.srch input{border:none;background:transparent;font-family:inherit;font-size:14px;color:var(--t);outline:none;flex:1;}
+.city-bar{padding:0 20px 12px;display:flex;align-items:center;gap:10px;}
+.city-pill{display:flex;align-items:center;gap:6px;background:var(--bg2);border-radius:11px;padding:8px 13px;border:none;font-family:inherit;cursor:pointer;}
+.city-pill span{font-size:14px;font-weight:500;color:var(--t);}
+.chips{display:flex;gap:7px;padding:0 20px 14px;overflow-x:auto;scrollbar-width:none;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{border-radius:100px;padding:7px 15px;font-size:13px;font-weight:500;border:1.5px solid var(--bd);white-space:nowrap;cursor:pointer;background:#fff;color:var(--t2);font-family:inherit;}
+.chip.on{background:var(--g);border-color:var(--g);color:#fff;}
+.slbl{padding:0 20px 10px;font-size:11px;font-weight:600;color:#BBB;letter-spacing:.07em;text-transform:uppercase;}
+/* grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:0 20px 20px;}
+.sc{background:#fff;border:1px solid var(--bd);border-radius:17px;overflow:hidden;cursor:pointer;transition:transform .12s;}
+.sc:active{transform:scale(.97);}
+.sc-img{height:82px;display:flex;align-items:center;justify-content:center;font-size:32px;}
+.sc-body{padding:9px 11px 12px;}
+.sc-name{font-family:'Instrument Serif',serif;font-size:15px;color:var(--t);margin-bottom:2px;}
+.sc-user{font-size:11px;color:#BBB;margin-bottom:6px;}
+.tag{font-size:11px;font-weight:500;padding:3px 9px;border-radius:100px;display:inline-block;}
+.tg{background:#E8F5EF;color:#2D7A55;} .to{background:#FFF0E8;color:#B85A1E;}
+.tc{background:#EAF0FF;color:#2D53C5;} .ty{background:#FFF6E0;color:#9A6A00;}
+.tp{background:#FDE8F3;color:#A0306A;}
+.empty{text-align:center;padding:48px 24px;color:var(--t2);}
+.empty-em{font-size:48px;margin-bottom:12px;}
+.empty-title{font-family:'Instrument Serif',serif;font-size:20px;color:var(--t);margin-bottom:8px;}
+/* MATCHES */
+.match-card{margin:0 20px 10px;border:1px solid var(--bd);border-radius:15px;overflow:hidden;background:#fff;}
+.mc-top{padding:13px;display:flex;gap:11px;align-items:center;}
+.mc-ava{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:var(--gl);}
+.mc-name{font-weight:600;font-size:14px;color:var(--t);margin-bottom:3px;display:flex;align-items:center;gap:6px;}
+.mc-desc{font-size:12px;color:#AAA;}
+.status-badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:100px;}
+.s-pending{background:#FFF6E0;color:#9A6A00;}
+.s-accepted{background:var(--gl);color:var(--gd);}
+.s-completed{background:#F0F0F0;color:#888;}
+.s-rejected{background:#FCEBEB;color:#A32D2D;}
+/* action buttons inside match card */
+.mc-actions{display:flex;gap:0;border-top:1px solid var(--bd);}
+.mc-btn{flex:1;padding:11px;font-size:13px;font-weight:600;border:none;cursor:pointer;font-family:inherit;background:transparent;color:var(--t2);}
+.mc-btn.accept{color:var(--g);}
+.mc-btn.reject{color:#C0392B;}
+.mc-btn.complete{color:var(--g);}
+.mc-btn+.mc-btn{border-left:1px solid var(--bd);}
+/* POST */
+.pf{padding:0 20px 20px;}
+.fg{margin-bottom:17px;}
+.fl{font-size:13px;font-weight:500;color:var(--t2);margin-bottom:7px;display:block;}
+.fi{width:100%;border:1.5px solid var(--bd);border-radius:13px;padding:11px 14px;font-family:inherit;font-size:14px;background:#fff;color:var(--t);resize:none;outline:none;transition:border .15s;}
+.fi:focus{border-color:var(--g);}
+.fi-sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;cursor:pointer;}
+.eg{display:flex;gap:8px;flex-wrap:wrap;}
+.ep{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;background:#fff;}
+.ep.sel{border-color:var(--g);background:var(--gl);}
+.mrow{display:flex;gap:8px;}
+.mc2{border-radius:100px;padding:7px 15px;font-size:13px;font-weight:500;border:1.5px solid var(--bd);cursor:pointer;background:#fff;color:#666;font-family:inherit;}
+.mc2.on{background:var(--g);border-color:var(--g);color:#fff;}
+.btn-post{width:100%;padding:14px;border-radius:14px;background:var(--g);color:#fff;font-size:15px;font-weight:600;border:none;cursor:pointer;font-family:inherit;margin-top:4px;}
+.btn-post:disabled{opacity:.45;}
+/* PROFILE */
+.prof-h{padding:calc(env(safe-area-inset-top,0px)+16px) 20px 14px;border-bottom:1px solid #F5F5F5;display:flex;gap:14px;}
+.prof-ava{width:58px;height:58px;border-radius:18px;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;}
+.prof-name{font-family:'Instrument Serif',serif;font-size:20px;color:var(--t);}
+.prof-sub{font-size:12px;color:var(--t2);margin-top:2px;}
+.stat-row{display:flex;gap:18px;margin-top:9px;}
+.stat-n{font-family:'Instrument Serif',serif;font-size:20px;color:var(--g);}
+.stat-l{font-size:10px;color:var(--t2);}
+.ms{margin:0 20px 10px;border:1px solid var(--bd);border-radius:14px;padding:12px;}
+.ms-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.ms-name{font-family:'Instrument Serif',serif;font-size:15px;color:var(--t);}
+.ms-live{font-size:11px;font-weight:500;background:var(--gl);color:var(--gd);padding:3px 9px;border-radius:100px;}
+.rv{margin:0 20px 10px;border:1px solid var(--bd);border-radius:13px;padding:12px;}
+.rv-txt{font-size:13px;color:#333;line-height:1.55;margin-bottom:6px;}
+.stars{color:#F5A623;font-size:14px;cursor:pointer;}
+.btn-logout{margin:16px 20px 0;width:calc(100% - 40px);padding:13px;border-radius:13px;border:1.5px solid var(--bd);background:#fff;font-size:14px;font-weight:500;color:var(--t2);cursor:pointer;font-family:inherit;}
+/* DETAIL OVERLAY */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none;align-items:flex-end;}
+.overlay.show{display:flex;}
+.sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;padding-bottom:calc(env(safe-area-inset-bottom,0px)+16px);}
+.sh-handle{width:36px;height:4px;background:#E0E0E0;border-radius:2px;margin:12px auto 14px;}
+.sh-head{padding:0 20px 14px;display:flex;gap:13px;align-items:center;border-bottom:1px solid #F5F5F5;}
+.sh-em{width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.sh-title{font-family:'Instrument Serif',serif;font-size:18px;color:var(--t);}
+.sh-sub{font-size:12px;color:var(--t2);margin-top:3px;}
+.close-x{margin-left:auto;width:28px;height:28px;border-radius:50%;background:#F5F5F5;border:none;cursor:pointer;font-size:13px;color:#888;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sh-rows{padding:14px 20px;}
+.sh-row{display:flex;align-items:center;gap:11px;margin-bottom:11px;}
+.sh-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--bg2);}
+.sh-lbl{font-size:13px;color:var(--t2);}
+.sh-val{font-size:13px;font-weight:500;color:var(--t);margin-left:auto;}
+.sh-btns{display:flex;gap:10px;padding:0 20px;}
+.btn-ol{flex:1;padding:13px;border-radius:13px;border:1.5px solid var(--bd);background:#fff;font-size:14px;font-weight:600;color:#555;cursor:pointer;font-family:inherit;}
+.btn-solid{flex:1;padding:13px;border-radius:13px;border:none;background:var(--g);font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit;}
+.btn-solid:disabled{opacity:.45;}
+/* RATING OVERLAY */
+.rating-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:24px;}
+.rating-overlay.show{display:flex;}
+.rating-card{background:#fff;border-radius:22px;padding:24px;width:100%;max-width:380px;text-align:center;}
+.rating-title{font-family:'Instrument Serif',serif;font-size:22px;color:var(--t);margin-bottom:6px;}
+.rating-sub{font-size:14px;color:var(--t2);margin-bottom:24px;line-height:1.5;}
+.star-row{display:flex;justify-content:center;gap:8px;margin-bottom:20px;}
+.star{font-size:36px;cursor:pointer;opacity:.3;transition:opacity .15s;}
+.star.lit{opacity:1;}
+.rating-textarea{width:100%;border:1.5px solid var(--bd);border-radius:13px;padding:12px 14px;font-family:inherit;font-size:14px;resize:none;outline:none;margin-bottom:16px;}
+.rating-textarea:focus{border-color:var(--g);}
+.btn-rate{width:100%;padding:14px;border-radius:13px;background:var(--g);color:#fff;font-size:15px;font-weight:600;border:none;cursor:pointer;font-family:inherit;}
+.btn-rate:disabled{opacity:.45;}
+.btn-skip{width:100%;padding:10px;border-radius:13px;border:none;background:transparent;font-size:14px;color:var(--t2);cursor:pointer;font-family:inherit;margin-top:6px;}
+/* CITY MODAL */
+.city-modal{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:300;display:none;align-items:flex-end;}
+.city-modal.show{display:flex;}
+.city-sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;max-height:80%;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px);}
+.city-hdl{width:36px;height:4px;background:#DDD;border-radius:2px;margin:12px auto 4px;}
+.city-t{font-family:'Instrument Serif',serif;font-size:20px;color:var(--t);padding:8px 20px 14px;border-bottom:1px solid #F0F0F0;}
+.city-list{overflow-y:auto;}
+.city-slbl{font-size:11px;font-weight:600;color:#AAA;letter-spacing:.06em;text-transform:uppercase;padding:10px 20px 6px;}
+.city-item{display:flex;align-items:center;justify-content:space-between;padding:13px 20px;border-bottom:1px solid #F8F8F8;cursor:pointer;}
+.city-il{display:flex;align-items:center;gap:12px;}
+.city-ico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--bg2);}
+.city-nm{font-weight:500;font-size:15px;color:var(--t);}
+.city-cnt{font-size:12px;color:var(--t2);}
+.city-ck{color:var(--g);}
+/* NAV */
+.bnav{height:calc(56px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:#fff;border-top:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-around;flex-shrink:0;}
+.ni{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 14px;border:none;background:transparent;}
+.ni span{font-size:10px;font-weight:500;color:#BBB;}
+.ni.on span{color:var(--g);}
+.ni svg *{stroke:#CCC;}
+.ni.on svg *{stroke:var(--g);}
+/* TOAST */
+.toast{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:13px;padding:10px 18px;border-radius:100px;z-index:400;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+
+/* ── 廣告樣式 ────────────────────────────────── */
+.ad-banner{margin:0 20px 14px;border-radius:13px;overflow:hidden;background:var(--bg2);border:0.5px solid var(--bd);}
+.ad-label{font-size:10px;color:#BBB;text-align:right;padding:3px 8px 0;letter-spacing:.04em;}
+.ad-adsense{display:block;width:100%;min-height:90px;}
+.sponsored-section{margin:0 0 4px;}
+.sponsored-lbl{padding:0 20px 8px;font-size:11px;font-weight:600;color:#E07B39;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:5px;}
+.sponsored-lbl::before{content:'';display:inline-block;width:6px;height:6px;background:#E07B39;border-radius:50%;}
+.sc-sponsored{background:#fff;border:1.5px solid #E07B39;border-radius:17px;overflow:hidden;cursor:pointer;transition:transform .12s;position:relative;}
+.sc-sponsored:active{transform:scale(.97);}
+.sp-badge{position:absolute;top:8px;right:8px;background:#E07B39;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;letter-spacing:.04em;}
+
+
+/* ── 分享功能 ──────────────────────────────── */
+.share-overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:120;display:none;align-items:flex-end;}
+.share-overlay.show{display:flex;}
+.share-sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;padding-bottom:calc(env(safe-area-inset-bottom,0px)+16px);}
+.share-handle{width:36px;height:4px;background:#E0E0E0;border-radius:2px;margin:12px auto 16px;}
+.share-title{font-family:'Instrument Serif',serif;font-size:18px;color:var(--t);padding:0 20px 4px;}
+.share-sub{font-size:13px;color:var(--t2);padding:0 20px 18px;}
+.share-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 20px 16px;}
+.share-btn{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;border:none;background:none;font-family:inherit;}
+.share-icon{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.share-label{font-size:11px;color:var(--t2);font-weight:500;}
+.share-divider{height:1px;background:var(--bd);margin:0 20px 14px;}
+.share-copy{margin:0 20px;padding:12px 16px;background:var(--bg2);border-radius:12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:none;width:calc(100% - 40px);font-family:inherit;}
+.share-url{font-size:12px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;}
+.share-copy-btn{font-size:12px;font-weight:600;color:var(--g);flex-shrink:0;}
+.share-close{margin:12px 20px 0;width:calc(100% - 40px);padding:13px;border-radius:13px;border:1.5px solid var(--bd);background:#fff;font-size:14px;color:var(--t2);cursor:pointer;font-family:inherit;}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading{text-align:center;padding:48px 20px;color:var(--t2);font-size:14px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- BROWSE -->
+  <div id="s-browse" class="screen active">
+    <div class="tb">
+      <div class="tb-row">
+        <div class="tb-title">技<i>遇</i></div>
+        <button class="ava-btn" id="main-ava" onclick="goTo('s-profile')">😊</button>
+      </div>
+    </div>
+    <div class="city-bar">
+      <button class="city-pill" onclick="showCity()">
+        <span>📍</span><span id="city-lbl">高雄市</span><span style="font-size:10px;color:#AAA;">▾</span>
+      </button>
+    </div>
+    <div class="srch">
+      <span style="font-size:15px;color:#AAA;">🔍</span>
+      <input type="text" id="search-input" placeholder="搜尋技能或使用者…" oninput="renderSkills()"/>
+    </div>
+    <div class="chips">
+      <div class="chip on" onclick="fchip(this,'全部')">全部</div>
+      <div class="chip" onclick="fchip(this,'設計')">設計</div>
+      <div class="chip" onclick="fchip(this,'語言')">語言</div>
+      <div class="chip" onclick="fchip(this,'音樂')">音樂</div>
+      <div class="chip" onclick="fchip(this,'程式')">程式</div>
+      <div class="chip" onclick="fchip(this,'料理')">料理</div>
+      <div class="chip" onclick="fchip(this,'攝影')">攝影</div>
+    </div>
+    <!-- AdSense 橫幅廣告 -->
+    <div class="ad-banner" id="ad-banner" style="display:none;">
+      <div class="ad-label">廣告</div>
+      <ins class="adsbygoogle ad-adsense"
+           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+           data-ad-slot="XXXXXXXXXX"
+           data-ad-format="horizontal"
+           data-full-width-responsive="true"></ins>
+    </div>
+
+    <!-- 精選置頂區 -->
+    <div class="sponsored-section" id="sponsored-section" style="display:none;">
+      <div class="sponsored-lbl">精選推薦</div>
+      <div class="grid" id="sponsored-grid"></div>
+    </div>
+
+    <div class="slbl" id="skill-count-lbl">載入中…</div>
+    <div class="grid" id="skill-grid"><div class="loading" style="grid-column:1/-1;">⏳ 載入技能中…</div></div>
+  </div>
+
+  <!-- MATCHES -->
+  <div id="s-matches" class="screen">
+    <div class="tb"><div class="tb-title">交換<i>配對</i></div></div>
+    <div id="matches-list"><div class="loading">⏳ 載入中…</div></div>
+  </div>
+
+  <!-- POST -->
+  <div id="s-post" class="screen">
+    <div class="tb"><div class="tb-title">發布<i>技能</i></div></div>
+    <div class="pf">
+      <div class="fg"><label class="fl">選個 Emoji</label><div class="eg">
+        <div class="ep sel" onclick="pickE(this,'🎨')">🎨</div>
+        <div class="ep" onclick="pickE(this,'🎸')">🎸</div>
+        <div class="ep" onclick="pickE(this,'💻')">💻</div>
+        <div class="ep" onclick="pickE(this,'📷')">📷</div>
+        <div class="ep" onclick="pickE(this,'🍜')">🍜</div>
+        <div class="ep" onclick="pickE(this,'🌏')">🌏</div>
+        <div class="ep" onclick="pickE(this,'🧘')">🧘</div>
+        <div class="ep" onclick="pickE(this,'✍️')">✍️</div>
+      </div></div>
+      <div class="fg"><label class="fl" for="post-cat">類別</label>
+        <select class="fi fi-sel" id="post-cat">
+          <option value="">選擇類別…</option>
+          <option>設計</option><option>程式</option><option>語言</option>
+          <option>音樂</option><option>料理</option><option>攝影</option>
+          <option>健身</option><option>其他</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">技能名稱</label><input class="fi" id="post-name" type="text" placeholder="例：Figma UI 設計教學"/></div>
+      <div class="fg"><label class="fl">簡短介紹</label><textarea class="fi" id="post-desc" rows="3" placeholder="你能教什麼？適合什麼程度？"></textarea></div>
+      <div class="fg"><label class="fl">所在城市</label>
+        <button class="city-pill" style="width:100%;justify-content:flex-start;border:1.5px solid var(--bd);border-radius:13px;padding:11px 14px;background:#fff;" onclick="showCity()">
+          <span>📍</span><span id="post-city-lbl">高雄市</span><span style="font-size:10px;color:#AAA;margin-left:auto;">▾</span>
+        </button>
+      </div>
+      <div class="fg"><label class="fl">想換什麼技能？</label><input class="fi" id="post-want" type="text" placeholder="例：日文會話、烹飪…"/></div>
+      <div class="fg"><label class="fl">上課方式</label><div class="mrow">
+        <div class="mc2 on" onclick="pickM(this)">線上</div>
+        <div class="mc2" onclick="pickM(this)">面對面</div>
+        <div class="mc2" onclick="pickM(this)">都可以</div>
+      </div></div>
+      <button class="btn-post" id="post-btn" onclick="postSkill()">發布技能</button>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="s-profile" class="screen">
+    <div class="prof-h">
+      <div class="prof-ava" id="prof-ava">😊</div>
+      <div style="flex:1;">
+        <div class="prof-name" id="prof-name">載入中…</div>
+        <div class="prof-sub" id="prof-sub">📍 —</div>
+        <div class="stat-row">
+          <div><div class="stat-n" id="stat-swaps">0</div><div class="stat-l">交換次數</div></div>
+          <div><div class="stat-n" id="stat-rating">—</div><div class="stat-l">平均評分</div></div>
+          <div><div class="stat-n" id="stat-skills">0</div><div class="stat-l">技能上架</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="slbl" style="padding-top:14px;">我的技能</div>
+    <div id="my-skills-list"><div class="loading">⏳</div></div>
+    <div class="slbl" style="padding-top:8px;">收到的評價</div>
+    <div id="my-reviews"><div class="loading">⏳</div></div>
+    <button class="btn-logout" onclick="window.location.href='profile-edit.html'" style="color:var(--g);border-color:var(--g);">✏️ 編輯個人資料</button>
+    <div id="upgrade-btn-wrap">
+      <button class="btn-logout" onclick="window.location.href='premium.html'" style="color:#3D9970;border-color:#3D9970;margin-bottom:0;">⭐ 升級 Premium</button>
+    </div>
+    <button class="btn-logout" onclick="window.location.href='invite.html'" style="color:#3D9970;border-color:#3D9970;margin-bottom:0;">🎁 邀請好友，各得 Premium</button>
+    <button class="btn-logout" onclick="window.location.href='subscription.html'" style="margin-bottom:0;">📋 管理訂閱</button>
+    <button class="btn-logout" onclick="signOut()">登出</button>
+  </div>
+
+  <!-- NAV -->
+  <nav class="bnav">
+    <button class="ni on" id="ni-browse" onclick="goTo('s-browse')">
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>瀏覽</span>
+    </button>
+    <button class="ni" id="ni-matches" onclick="goTo('s-matches');loadMatches()">
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3"/></svg>
+      <span>配對</span>
+    </button>
+    <button class="ni" id="ni-post" onclick="goTo('s-post')">
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+      <span>發布</span>
+    </button>
+    <button class="ni" id="ni-chat" onclick="window.location.href='chat.html'">
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>訊息</span>
+    </button>
+    <button class="ni" id="ni-map" onclick="window.location.href='map.html'">
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      <span>地圖</span>
+    </button>
+    <button class="ni" id="ni-profile" onclick="goTo('s-profile')">
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>我的</span>
+    </button>
+  </nav>
+
+  <!-- SHARE OVERLAY -->
+  <div class="share-overlay" id="share-overlay" onclick="if(event.target===this)closeShare()">
+    <div class="share-sheet">
+      <div class="share-handle"></div>
+      <div class="share-title" id="share-title">分享這個技能</div>
+      <div class="share-sub" id="share-sub">讓更多人看到這個技能！</div>
+      <div class="share-grid">
+        <button class="share-btn" onclick="shareTo('line')">
+          <div class="share-icon" style="background:#00B900;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+          </div>
+          <span class="share-label">LINE</span>
+        </button>
+        <button class="share-btn" onclick="shareTo('facebook')">
+          <div class="share-icon" style="background:#1877F2;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          </div>
+          <span class="share-label">Facebook</span>
+        </button>
+        <button class="share-btn" onclick="shareTo('twitter')">
+          <div class="share-icon" style="background:#000;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </div>
+          <span class="share-label">X</span>
+        </button>
+        <button class="share-btn" onclick="shareTo('native')">
+          <div class="share-icon" style="background:var(--gl);color:var(--g);">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#3D9970" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </div>
+          <span class="share-label">更多</span>
+        </button>
+      </div>
+      <div class="share-divider"></div>
+      <button class="share-copy" onclick="copyLink()">
+        <span class="share-url" id="share-url-text">https://jiyu-app.vercel.app</span>
+        <span class="share-copy-btn" id="copy-btn-text">複製連結</span>
+      </button>
+      <button class="share-close" onclick="closeShare()">關閉</button>
+    </div>
+  </div>
+
+
+  <!-- SKILL DETAIL OVERLAY -->
+  <div class="overlay" id="detail-overlay" onclick="if(event.target===this)closeDetail()">
+    <div class="sheet">
+      <div class="sh-handle"></div>
+      <div class="sh-head">
+        <div class="sh-em" id="ds-em" style="background:var(--gl);">🎨</div>
+        <div style="flex:1;"><div class="sh-title" id="ds-title">—</div><div class="sh-sub" id="ds-sub">—</div></div>
+        <button class="close-x" onclick="closeDetail()">✕</button>
+      </div>
+      <div class="sh-rows">
+        <div class="sh-row"><div class="sh-icon">🔄</div><div class="sh-lbl">想換技能</div><div class="sh-val" id="ds-want">—</div></div>
+        <div class="sh-row"><div class="sh-icon">🕐</div><div class="sh-lbl">上課方式</div><div class="sh-val" id="ds-mode">—</div></div>
+        <div class="sh-row"><div class="sh-icon">📍</div><div class="sh-lbl">城市</div><div class="sh-val" id="ds-city">—</div></div>
+      </div>
+      <div style="padding:0 20px 10px;"><button onclick="if(currentSkill)blockUser(currentSkill.user_id, currentSkill.profiles?.full_name||'此用戶')" style="font-size:12px;color:#C0392B;border:none;background:none;cursor:pointer;font-family:inherit;padding:0;">⊘ 封鎖此用戶</button></div>
+      <div class="sh-btns">
+        <button class="btn-ol" id="btn-nav" onclick="openNav()" style="display:none;">🗺 導航</button>
+        <button class="btn-ol" onclick="openShare()" style="flex:0 0 auto;padding:13px 14px;">↗ 分享</button>
+        <button class="btn-solid" id="btn-apply" onclick="applySwap()">申請交換</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RATING OVERLAY -->
+  <div class="rating-overlay" id="rating-overlay">
+    <div class="rating-card">
+      <div class="rating-title">交換完成！⭐</div>
+      <div class="rating-sub">給這次的技遇夥伴留下評價吧</div>
+      <div class="star-row" id="star-row">
+        <span class="star" onclick="setStar(1)">★</span>
+        <span class="star" onclick="setStar(2)">★</span>
+        <span class="star" onclick="setStar(3)">★</span>
+        <span class="star" onclick="setStar(4)">★</span>
+        <span class="star" onclick="setStar(5)">★</span>
+      </div>
+      <textarea class="rating-textarea" id="rating-text" rows="3" placeholder="寫下你的評價（選填）…"></textarea>
+      <button class="btn-rate" id="rate-btn" onclick="submitRating()">送出評價</button>
+      <button class="btn-skip" onclick="closeRating()">跳過</button>
+    </div>
+  </div>
+
+  <!-- CITY MODAL -->
+  <div class="city-modal" id="city-modal" onclick="if(event.target===this)hideCity()">
+    <div class="city-sheet">
+      <div class="city-hdl"></div>
+      <div class="city-t">選擇城市</div>
+      <div class="city-list">
+        <div class="city-slbl">熱門城市</div>
+        <div class="city-item" onclick="setCity('台北市',142)"><div class="city-il"><div class="city-ico">🏙</div><div><div class="city-nm">台北市</div><div class="city-cnt">142 個技能</div></div></div><span class="city-ck" id="ck-台北市" style="display:none;">✓</span></div>
+        <div class="city-item" onclick="setCity('新北市',98)"><div class="city-il"><div class="city-ico">🌆</div><div><div class="city-nm">新北市</div><div class="city-cnt">98 個技能</div></div></div><span class="city-ck" id="ck-新北市" style="display:none;">✓</span></div>
+        <div class="city-item" onclick="setCity('台中市',76)"><div class="city-il"><div class="city-ico">🌇</div><div><div class="city-nm">台中市</div><div class="city-cnt">76 個技能</div></div></div><span class="city-ck" id="ck-台中市" style="display:none;">✓</span></div>
+        <div class="city-item" onclick="setCity('台南市',51)"><div class="city-il"><div class="city-ico">🏯</div><div><div class="city-nm">台南市</div><div class="city-cnt">51 個技能</div></div></div><span class="city-ck" id="ck-台南市" style="display:none;">✓</span></div>
+        <div class="city-item" onclick="setCity('高雄市',24)"><div class="city-il"><div class="city-ico">🏖</div><div><div class="city-nm">高雄市</div><div class="city-cnt">24 個技能</div></div></div><span class="city-ck" id="ck-高雄市">✓</span></div>
+        <div class="city-item" onclick="setCity('桃園市',63)"><div class="city-il"><div class="city-ico">🏘</div><div><div class="city-nm">桃園市</div><div class="city-cnt">63 個技能</div></div></div><span class="city-ck" id="ck-桃園市" style="display:none;">✓</span></div>
+        <div class="city-item" onclick="setCity('全台灣',513)"><div class="city-il"><div class="city-ico">🗺</div><div><div class="city-nm">全台灣</div><div class="city-cnt">513 個技能</div></div></div><span class="city-ck" id="ck-全台灣" style="display:none;">✓</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="push-setup.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL='https://your-project.supabase.co';
+const SUPABASE_KEY='your-anon-public-key';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let currentUser=null, currentProfile=null;
+let allSkills=[], currentSkill=null;
+let selectedEmoji='🎨', selectedMode='線上', selectedCity='高雄市', activeCategory='全部';
+let ratingSwapId=null, ratingTargetId=null, ratingStars=0;
+const catColors={設計:'#F0FAF5',語言:'#FFFBF0',音樂:'#FFF0F5',程式:'#EFF2FF',料理:'#FFF5F0',攝影:'#FDE8F3',健身:'#F0FAF5',其他:'#F5F5F5'};
+const catTags  ={設計:'tg',語言:'ty',音樂:'tp',程式:'tc',料理:'to',攝影:'tp',健身:'tg',其他:'tg'};
+
+
+// ── 廣告載入 ──────────────────────────────────
+function loadAds() {
+  const banner = document.getElementById('ad-banner');
+  // 非 Premium 才顯示廣告
+  if (currentProfile && !currentProfile.is_premium) {
+    banner.style.display = 'block';
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch(e) {}
+  }
+}
+
+// ── 精選置頂技能載入 ──────────────────────────
+async function loadSponsored() {
+  const { data } = await sb.from('skills')
+    .select('*,profiles(full_name,avatar_url)')
+    .eq('is_active', true)
+    .eq('is_sponsored', true)
+    .order('sponsored_until', { ascending: false })
+    .limit(2);
+
+  const list = data || [];
+  const sec = document.getElementById('sponsored-section');
+  const grid = document.getElementById('sponsored-grid');
+  if (!list.length) { sec.style.display = 'none'; return; }
+
+  sec.style.display = 'block';
+  grid.innerHTML = list.map(s => `
+    <div class="sc sc-sponsored" onclick="openDetail('${s.id}')">
+      <span class="sp-badge">精選</span>
+      <div class="sc-img" style="background:${catColors[s.category]||'#F5F5F5'};">${s.emoji||'🎨'}</div>
+      <div class="sc-body">
+        <div class="sc-name">${s.name}</div>
+        <div class="sc-user">${s.profiles?.full_name||'用戶'} · ${s.city||''}</div>
+        <div class="tag to">換：${s.want||'—'}</div>
+      </div>
+    </div>`).join('');
+}
+
+
+// ── 分享功能 ──────────────────────────────────
+let shareSkill = null;
+
+function openShare() {
+  if (!currentSkill) return;
+  shareSkill = currentSkill;
+  const url = `${location.origin}/skill.html?id=${shareSkill.id}`;
+  document.getElementById('share-title').textContent = shareSkill.name;
+  document.getElementById('share-sub').textContent   = `${shareSkill.profiles?.full_name||'用戶'} 想用此技能交換 ${shareSkill.want||'其他技能'}`;
+  document.getElementById('share-url-text').textContent = url;
+  document.getElementById('share-overlay').classList.add('show');
+}
+
+function closeShare() { document.getElementById('share-overlay').classList.remove('show'); }
+
+function shareTo(platform) {
+  if (!shareSkill) return;
+  const url  = encodeURIComponent(`${location.origin}/skill.html?id=${shareSkill.id}`);
+  const text = encodeURIComponent(`🔄 技遇 | ${shareSkill.name}\n${shareSkill.profiles?.full_name||''} 想換：${shareSkill.want||'—'}\n快來申請交換！`);
+  const urls = {
+    line:     `https://social-plugins.line.me/lineit/share?url=${url}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+    twitter:  `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+    native:   null,
+  };
+  if (platform === 'native' && navigator.share) {
+    navigator.share({
+      title: `技遇 | ${shareSkill.name}`,
+      text:  `${shareSkill.profiles?.full_name||''} 想用「${shareSkill.name}」換「${shareSkill.want||'技能'}」`,
+      url:   decodeURIComponent(url),
+    }).catch(()=>{});
+    return;
+  }
+  if (urls[platform]) window.open(urls[platform], '_blank');
+}
+
+function copyLink() {
+  if (!shareSkill) return;
+  const url = `${location.origin}/skill.html?id=${shareSkill.id}`;
+  navigator.clipboard.writeText(url).then(()=>{
+    document.getElementById('copy-btn-text').textContent = '已複製 ✓';
+    setTimeout(()=>document.getElementById('copy-btn-text').textContent='複製連結', 2000);
+  });
+}
+
+// ── 初始化 ────────────────────────────────────
+window.addEventListener('DOMContentLoaded',async()=>{
+  const{data:{user}}=await sb.auth.getUser();
+  if(!user){window.location.href='login.html';return;}
+  currentUser=user;
+  if(!localStorage.getItem('onboarding_done')){
+    const{data}=await sb.from('profiles').select('full_name').eq('id',user.id).single();
+    if(!data?.full_name){window.location.href='onboarding.html';return;}
+    localStorage.setItem('onboarding_done','1');
+  }
+  await loadProfile();
+  await loadSkills();
+  initPushNotifications(sb, currentUser.id);
+  await loadSponsored();
+  loadAds();
+});
+
+// ── Profile ───────────────────────────────────
+async function loadProfile(){
+  const{data}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+  if(!data)return;
+  currentProfile=data;
+  selectedCity=data.city||'高雄市';
+  document.getElementById('main-ava').textContent=data.avatar_url||'😊';
+  document.getElementById('prof-ava').textContent=data.avatar_url||'😊';
+  document.getElementById('prof-name').textContent=data.full_name||'用戶';
+  document.getElementById('prof-sub').textContent='📍 '+(data.city||'—');
+  document.getElementById('stat-swaps').textContent=data.swap_count||0;
+  document.getElementById('stat-rating').textContent=data.rating?Number(data.rating).toFixed(1):'—';
+  document.getElementById('city-lbl').textContent=data.city||'高雄市';
+  document.getElementById('post-city-lbl').textContent=data.city||'高雄市';
+  await loadMySkills();
+  await loadMyReviews();
+  // 隱藏/顯示升級按鈕
+  const upgWrap = document.getElementById('upgrade-btn-wrap');
+  if (upgWrap) upgWrap.style.display = data?.is_premium ? 'none' : 'block';
+}
+
+// ── Skills ────────────────────────────────────
+async function loadSkills(){
+  let q=sb.from('skills').select('*,profiles(full_name,avatar_url,city)').eq('is_active',true).order('created_at',{ascending:false});
+  if(selectedCity!=='全台灣')q=q.eq('city',selectedCity);
+  const{data}=await q;
+  allSkills=data||[];
+  renderSkills();
+}
+
+function renderSkills(){
+  const search=document.getElementById('search-input').value.toLowerCase();
+  const list=allSkills.filter(s=>{
+    const cm=activeCategory==='全部'||s.category===activeCategory;
+    const sm=!search||s.name.toLowerCase().includes(search)||(s.profiles?.full_name||'').toLowerCase().includes(search);
+    return cm&&sm;
+  });
+  document.getElementById('skill-count-lbl').textContent=selectedCity+' · '+list.length+' 個技能';
+  const grid=document.getElementById('skill-grid');
+  if(!list.length){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1;"><div class="empty-em">🔍</div><div class="empty-title">還沒有技能</div><div class="empty-sub">成為第一個在${selectedCity}發布技能的人！</div></div>`;
+    return;
+  }
+  grid.innerHTML=list.map(s=>`
+    <div class="sc" onclick="openDetail('${s.id}')">
+      <div class="sc-img" style="background:${catColors[s.category]||'#F5F5F5'};">${s.emoji||'🎨'}</div>
+      <div class="sc-body">
+        <div class="sc-name">${s.name}</div>
+        <div class="sc-user">${s.profiles?.full_name||'用戶'} · ${s.district||s.city||''}</div>
+        <div class="tag ${catTags[s.category]||'tg'}">換：${s.want||'—'}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── My skills + reviews ───────────────────────
+async function loadMySkills(){
+  const{data}=await sb.from('skills').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+  const list=data||[];
+  document.getElementById('stat-skills').textContent=list.length;
+  document.getElementById('my-skills-list').innerHTML=list.length===0
+    ?`<div class="empty"><div class="empty-em">✨</div><div class="empty-title">還沒有技能</div><div class="empty-sub">去「發布」頁面新增你的第一個技能！</div></div>`
+    :list.map(s=>`<div class="ms"><div class="ms-h"><span class="ms-name">${s.emoji||'🎨'} ${s.name}</span><span class="ms-live">上架中</span></div><div style="font-size:12px;color:#AAA;margin-bottom:8px;">想換：${s.want||'—'} · ${s.mode||'—'}</div><button onclick="unpublishSkill('${s.id}')" style="font-size:12px;color:#C0392B;border:none;background:none;padding:0;cursor:pointer;font-family:inherit;">下架此技能</button></div>`).join('');
+}
+
+async function loadMyReviews(){
+  const{data}=await sb.from('reviews').select('*,profiles!reviews_reviewer_id_fkey(full_name,avatar_url)').eq('reviewee_id',currentUser.id).order('created_at',{ascending:false}).limit(5);
+  const list=data||[];
+  document.getElementById('my-reviews').innerHTML=list.length===0
+    ?`<div style="padding:16px 20px;font-size:13px;color:#AAA;">完成第一次交換後，你的評價會出現在這裡</div>`
+    :list.map(r=>`<div class="rv"><div class="rv-txt">"${r.content||'很棒的交換體驗！'}"</div><div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:11px;color:#AAA;">${r.profiles?.full_name||'用戶'}</span><span class="stars">${'★'.repeat(r.rating||5)}</span></div></div>`).join('');
+}
+
+// ── Matches ───────────────────────────────────
+async function loadMatches(){
+  const{data}=await sb.from('swaps')
+    .select('*,skills(name,emoji),req:profiles!swaps_requester_id_fkey(full_name,avatar_url),prov:profiles!swaps_provider_id_fkey(full_name,avatar_url)')
+    .or(`requester_id.eq.${currentUser.id},provider_id.eq.${currentUser.id}`)
+    .order('created_at',{ascending:false});
+  const list=data||[];
+  const ml=document.getElementById('matches-list');
+  if(!list.length){
+    ml.innerHTML=`<div class="empty"><div class="empty-em">🤝</div><div class="empty-title">還沒有配對</div><div class="empty-sub">去瀏覽技能，申請你的第一次交換吧！</div></div>`;
+    return;
+  }
+  const sLabel={pending:'等待回應',accepted:'進行中',completed:'已完成',rejected:'已拒絕'};
+  const sCls  ={pending:'s-pending',accepted:'s-accepted',completed:'s-completed',rejected:'s-rejected'};
+  ml.innerHTML=list.map(s=>{
+    const isReq=s.requester_id===currentUser.id;
+    const other=isReq?s.prov:s.req;
+    const isProvider=s.provider_id===currentUser.id;
+    let actions='';
+    // provider 可以接受/拒絕 pending
+    if(isProvider&&s.status==='pending'){
+      actions=`<div class="mc-actions">
+        <button class="mc-btn accept" onclick="respondSwap('${s.id}','accepted')">✓ 接受</button>
+        <button class="mc-btn reject" onclick="respondSwap('${s.id}','rejected')">✕ 拒絕</button>
+      </div>`;
+    }
+    // 雙方都可以標記完成（進行中狀態）
+    if(s.status==='accepted'){
+      actions=`<div class="mc-actions">
+        <button class="mc-btn complete" onclick="completeSwap('${s.id}','${isReq?s.provider_id:s.requester_id}')">✓ 標記完成並評分</button>
+      </div>`;
+    }
+    return `<div class="match-card">
+      <div class="mc-top">
+        <div class="mc-ava">${other?.avatar_url||'😊'}</div>
+        <div style="flex:1;">
+          <div class="mc-name">${other?.full_name||'用戶'}<span class="status-badge ${sCls[s.status]||''}">${sLabel[s.status]||s.status}</span></div>
+          <div class="mc-desc">${s.skills?.emoji||''} ${s.skills?.name||'技遇'}</div>
+        </div>
+      </div>
+      ${actions}
+    </div>`;
+  }).join('');
+}
+
+// ── Accept / Reject ───────────────────────────
+async function respondSwap(swapId,status){
+  const{error}=await sb.from('swaps').update({status}).eq('id',swapId);
+  if(error){showToast('操作失敗，請再試一次');return;}
+  showToast(status==='accepted'?'已接受交換申請 🎉':'已拒絕申請');
+  await loadMatches();
+}
+
+// ── Complete + Rating ──────────────────────────
+async function completeSwap(swapId,targetUserId){
+  // 先把 swap 標為 completed
+  await sb.from('swaps').update({status:'completed'}).eq('id',swapId);
+  // 更新 swap_count
+  await sb.rpc('increment_swap_count',{user_id:currentUser.id});
+  await sb.rpc('increment_swap_count',{user_id:targetUserId});
+  // 開啟評分 overlay
+  ratingSwapId=swapId;
+  ratingTargetId=targetUserId;
+  ratingStars=5;
+  setStar(5);
+  document.getElementById('rating-text').value='';
+  document.getElementById('rating-overlay').classList.add('show');
+  await loadMatches();
+}
+
+function setStar(n){
+  ratingStars=n;
+  document.querySelectorAll('#star-row .star').forEach((s,i)=>s.classList.toggle('lit',i<n));
+}
+
+async function submitRating(){
+  const btn=document.getElementById('rate-btn');
+  btn.disabled=true;btn.textContent='送出中…';
+  const content=document.getElementById('rating-text').value.trim();
+  await sb.from('reviews').insert({
+    swap_id:ratingSwapId,
+    reviewer_id:currentUser.id,
+    reviewee_id:ratingTargetId,
+    rating:ratingStars,
+    content,
+  });
+  // 更新對方平均評分
+  const{data:revs}=await sb.from('reviews').select('rating').eq('reviewee_id',ratingTargetId);
+  if(revs?.length){
+    const avg=revs.reduce((a,r)=>a+r.rating,0)/revs.length;
+    await sb.from('profiles').update({rating:Math.round(avg*10)/10}).eq('id',ratingTargetId);
+  }
+  btn.disabled=false;btn.textContent='送出評價';
+  closeRating();
+  showToast('評價已送出，謝謝你！⭐');
+  await loadMyReviews();
+}
+function closeRating(){document.getElementById('rating-overlay').classList.remove('show');}
+
+// ── Post skill ────────────────────────────────
+async function postSkill(){
+  const name=document.getElementById('post-name').value.trim();
+  const cat=document.getElementById('post-cat').value;
+  const want=document.getElementById('post-want').value.trim();
+  if(!name){showToast('請填寫技能名稱');return;}
+  if(!cat){showToast('請選擇類別');return;}
+  if(!want){showToast('請填寫想換什麼');return;}
+  const btn=document.getElementById('post-btn');
+  btn.disabled=true;btn.textContent='發布中…';
+  const{error}=await sb.from('skills').insert({
+    user_id:currentUser.id,name,emoji:selectedEmoji,category:cat,
+    description:document.getElementById('post-desc').value.trim(),
+    city:selectedCity,want,mode:selectedMode,is_active:true,
+  });
+  btn.disabled=false;btn.textContent='發布技能';
+  if(error){showToast('發布失敗，請再試一次');return;}
+  showToast('技能已成功發布！🎉');
+  document.getElementById('post-name').value='';
+  document.getElementById('post-desc').value='';
+  document.getElementById('post-want').value='';
+  document.getElementById('post-cat').value='';
+  await loadSkills();await loadMySkills();
+  setTimeout(()=>goTo('s-browse'),1000);
+}
+
+// ── Skill detail ──────────────────────────────
+function openDetail(id){
+  const s=allSkills.find(x=>x.id===id);
+  if(!s)return;
+  currentSkill=s;
+  document.getElementById('ds-em').textContent=s.emoji||'🎨';
+  document.getElementById('ds-em').style.background=catColors[s.category]||'#F5F5F5';
+  document.getElementById('ds-title').textContent=s.name;
+  document.getElementById('ds-sub').textContent=(s.profiles?.full_name||'用戶')+' · '+(s.city||'');
+  document.getElementById('ds-want').textContent=s.want||'—';
+  document.getElementById('ds-mode').textContent=s.mode||'—';
+  document.getElementById('ds-city').textContent=s.city||'—';
+  const own=s.user_id===currentUser.id;
+  const applyBtn=document.getElementById('btn-apply');
+  applyBtn.textContent=own?'這是你的技能':'申請交換';
+  applyBtn.disabled=own;
+  document.getElementById('btn-nav').style.display=(s.mode==='面對面'||s.mode==='都可以')&&s.lat?'flex':'none';
+  document.getElementById('detail-overlay').classList.add('show');
+}
+function closeDetail(){document.getElementById('detail-overlay').classList.remove('show');}
+function openNav(){
+  if(currentSkill?.lat)window.open(`https://maps.apple.com/?daddr=${currentSkill.lat},${currentSkill.lng}&dirflg=d`,'_blank');
+}
+
+async function applySwap(){
+  if(!currentSkill||currentSkill.user_id===currentUser.id)return;
+  const btn=document.getElementById('btn-apply');
+  btn.disabled=true;btn.textContent='送出中…';
+  const{error}=await sb.from('swaps').insert({
+    requester_id:currentUser.id,
+    provider_id:currentSkill.user_id,
+    skill_id:currentSkill.id,
+    status:'pending',
+  });
+  btn.disabled=false;btn.textContent='申請交換';
+  if(error&&error.code!=='23505'){showToast('申請失敗，請再試一次');return;}
+  showToast('申請已送出！等對方回覆 🎉');
+  closeDetail();
+  // 申請後詢問是否開啟通知
+  setTimeout(askPushPermission, 1500);
+}
+
+// ── Helpers ───────────────────────────────────
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  const m={'s-browse':'ni-browse','s-matches':'ni-matches','s-post':'ni-post','s-profile':'ni-profile'};
+  if(m[id])document.getElementById(m[id]).classList.add('on');
+}
+function fchip(el,cat){document.querySelectorAll('.chips .chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');activeCategory=cat;renderSkills();}
+function pickE(el,em){document.querySelectorAll('.ep').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');selectedEmoji=em;}
+function pickM(el){document.querySelectorAll('.mc2').forEach(e=>e.classList.remove('on'));el.classList.add('on');selectedMode=el.textContent;}
+function showCity(){document.getElementById('city-modal').classList.add('show');}
+function hideCity(){document.getElementById('city-modal').classList.remove('show');}
+function setCity(name){
+  document.querySelectorAll('.city-ck').forEach(e=>e.style.display='none');
+  const ck=document.getElementById('ck-'+name);if(ck)ck.style.display='block';
+  selectedCity=name;
+  document.getElementById('city-lbl').textContent=name;
+  document.getElementById('post-city-lbl').textContent=name;
+  hideCity();loadSkills();
+}
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+async function unpublishSkill(skillId){
+  if(!confirm('確定要下架這個技能嗎？'))return;
+  const{error}=await sb.from('skills').update({is_active:false}).eq('id',skillId).eq('user_id',currentUser.id);
+  if(error){showToast('下架失敗');return;}
+  showToast('技能已下架');
+  await loadSkills();await loadMySkills();
+}
+
+// ── 推播通知請求（在有意義時機詢問）────────────
+async function askPushPermission() {
+  if (Notification.permission === 'granted') return;
+  if (Notification.permission === 'denied') return;
+  if (localStorage.getItem('push_asked')) return;
+  localStorage.setItem('push_asked', '1');
+  const granted = await requestPushPermission();
+  if (granted) showToast('通知已開啟，有新申請我們會通知你 🔔');
+}
+
+// ── 封鎖用戶 ──────────────────────────────────
+async function blockUser(userId, userName) {
+  if (!confirm('確定要封鎖「' + userName + '」？封鎖後你們將無法互相看到技能或傳訊息。')) return;
+  const { error } = await sb.from('blocks').insert({
+    blocker_id: currentUser.id,
+    blocked_id: userId,
+  });
+  if (error && error.code !== '23505') { showToast('操作失敗，請再試一次'); return; }
+  showToast('已封鎖此用戶');
+  closeDetail();
+  await loadSkills(); // 重新載入，過濾掉被封鎖者的技能
+}
+
+async function signOut(){
+  await sb.auth.signOut();localStorage.removeItem('onboarding_done');
+  window.location.href='login.html';
+}
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js').catch(()=>{}));
+</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+</body>
+</html>

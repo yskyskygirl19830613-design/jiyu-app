@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>編輯個人資料 — 技遇</title>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#3D9970"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--g:#3D9970;--gl:#E8F5EF;--t:#111;--t2:#888;--bd:#EBEBEB;--bg2:#F7F7F7;}
+html,body{background:#fff;font-family:'Plus Jakarta Sans',-apple-system,sans-serif;}
+.wrap{max-width:430px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px)+16px) 22px calc(env(safe-area-inset-bottom,0px)+40px);}
+.hdr{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+.back{background:none;border:none;font-size:22px;color:var(--t2);cursor:pointer;padding:0;}
+.hdr-title{font-family:'Instrument Serif',serif;font-size:22px;color:var(--t);}
+.hdr-title i{font-style:italic;color:var(--g);}
+/* avatar */
+.ava-section{text-align:center;margin-bottom:28px;}
+.ava-circle{width:80px;height:80px;border-radius:24px;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:38px;margin:0 auto 10px;}
+.ava-hint{font-size:13px;color:var(--t2);margin-bottom:8px;}
+.eg{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.ep{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;background:#fff;}
+.ep.sel{border-color:var(--g);background:var(--gl);}
+/* form */
+.fg{margin-bottom:17px;}
+.fl{font-size:13px;font-weight:500;color:var(--t2);margin-bottom:7px;display:block;}
+.fi{width:100%;border:1.5px solid var(--bd);border-radius:13px;padding:12px 14px;font-family:inherit;font-size:15px;color:var(--t);outline:none;transition:border .15s;background:#fff;resize:none;}
+.fi:focus{border-color:var(--g);}
+.fi-sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;cursor:pointer;}
+.btn-save{width:100%;padding:14px;border-radius:14px;background:var(--g);color:#fff;font-size:15px;font-weight:600;border:none;cursor:pointer;font-family:inherit;margin-top:4px;}
+.btn-save:disabled{opacity:.45;}
+.msg{border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:16px;display:none;}
+.msg.show{display:block;}
+.ok{background:var(--gl);color:#2D7A55;}
+.err{background:#FEE;color:#C0392B;}
+/* danger zone */
+.danger-zone{margin-top:40px;border-top:1px solid var(--bd);padding-top:24px;}
+.danger-title{font-size:13px;font-weight:600;color:#C0392B;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;}
+.btn-danger{width:100%;padding:13px;border-radius:13px;border:1.5px solid #F5C6C6;background:#FEF0F0;font-size:14px;font-weight:500;color:#C0392B;cursor:pointer;font-family:inherit;margin-bottom:10px;}
+.btn-danger:active{background:#FDDCDC;}
+/* confirm modal */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:24px;}
+.modal-ov.show{display:flex;}
+.modal{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:360px;text-align:center;}
+.modal-em{font-size:42px;margin-bottom:12px;}
+.modal-title{font-family:'Instrument Serif',serif;font-size:20px;color:var(--t);margin-bottom:8px;}
+.modal-sub{font-size:14px;color:var(--t2);line-height:1.6;margin-bottom:22px;}
+.modal-btns{display:flex;gap:10px;}
+.modal-cancel{flex:1;padding:13px;border-radius:13px;border:1.5px solid var(--bd);background:#fff;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--t2);}
+.modal-confirm{flex:1;padding:13px;border-radius:13px;border:none;background:#C0392B;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;color:#fff;}
+/* report */
+.report-reason{width:100%;border:1.5px solid var(--bd);border-radius:13px;padding:12px 14px;font-family:inherit;font-size:14px;color:var(--t);outline:none;margin-bottom:12px;resize:none;}
+.report-reason:focus{border-color:var(--g);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <button class="back" onclick="history.back()">‹</button>
+    <div class="hdr-title">編輯<i>個人資料</i></div>
+  </div>
+
+  <!-- 大頭貼 -->
+  <div class="ava-section">
+    <div class="ava-circle" id="ava-preview">😊</div>
+    <div class="ava-hint">選擇代表你的 Emoji</div>
+    <div class="eg">
+      <div class="ep sel" onclick="pickAva(this,'😊')">😊</div>
+      <div class="ep" onclick="pickAva(this,'🎨')">🎨</div>
+      <div class="ep" onclick="pickAva(this,'💻')">💻</div>
+      <div class="ep" onclick="pickAva(this,'🎸')">🎸</div>
+      <div class="ep" onclick="pickAva(this,'📷')">📷</div>
+      <div class="ep" onclick="pickAva(this,'🍜')">🍜</div>
+      <div class="ep" onclick="pickAva(this,'🧘')">🧘</div>
+      <div class="ep" onclick="pickAva(this,'🌏')">🌏</div>
+      <div class="ep" onclick="pickAva(this,'⚡')">⚡</div>
+      <div class="ep" onclick="pickAva(this,'🌟')">🌟</div>
+    </div>
+  </div>
+
+  <div class="msg" id="save-msg"></div>
+
+  <div class="fg"><label class="fl">名稱</label><input class="fi" type="text" id="f-name" placeholder="你的名稱" maxlength="20"/></div>
+  <div class="fg"><label class="fl" for="f-city">所在城市</label>
+    <select class="fi fi-sel" id="f-city">
+      <option>台北市</option><option>新北市</option><option>桃園市</option>
+      <option>台中市</option><option>台南市</option><option>高雄市</option>
+      <option>新竹市</option><option>宜蘭縣</option><option>花蓮縣</option><option>其他</option>
+    </select>
+  </div>
+  <div class="fg"><label class="fl">自我介紹（選填）</label><textarea class="fi" id="f-bio" rows="3" placeholder="喜歡學習新技能…" maxlength="150"></textarea></div>
+
+  <button class="btn-save" id="save-btn" onclick="saveProfile()">儲存變更</button>
+
+  <!-- Danger Zone -->
+  <div class="danger-zone">
+    <div class="danger-title">危險操作</div>
+    <button class="btn-danger" onclick="showModal('report-modal')">🚨 檢舉用戶</button>
+    <button class="btn-danger" onclick="showModal('delete-modal')">🗑 刪除帳號</button>
+  </div>
+</div>
+
+<!-- 刪除帳號 Modal -->
+<div class="modal-ov" id="delete-modal">
+  <div class="modal">
+    <div class="modal-em">⚠️</div>
+    <div class="modal-title">確定要刪除帳號？</div>
+    <div class="modal-sub">這個操作無法復原。你的所有技能、配對紀錄和評價將永久刪除。</div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="hideModal('delete-modal')">取消</button>
+      <button class="modal-confirm" id="delete-btn" onclick="deleteAccount()">確定刪除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 檢舉用戶 Modal -->
+<div class="modal-ov" id="report-modal">
+  <div class="modal">
+    <div class="modal-em">🚨</div>
+    <div class="modal-title">檢舉用戶</div>
+    <div class="modal-sub">請描述你遇到的問題，我們會在 24 小時內審查。</div>
+    <label for="report-type" style="display:none;">檢舉原因</label>
+    <select class="fi fi-sel" id="report-type" style="margin-bottom:12px;text-align:left;">
+      <option value="">選擇原因…</option>
+      <option>虛假技能資訊</option>
+      <option>騷擾或霸凌</option>
+      <option>詐欺行為</option>
+      <option>不當內容</option>
+      <option>其他</option>
+    </select>
+    <textarea class="report-reason" id="report-content" rows="3" placeholder="詳細說明（選填）…"></textarea>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="hideModal('report-modal')">取消</button>
+      <button class="modal-confirm" style="background:var(--g);" onclick="submitReport()">送出檢舉</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL='https://your-project.supabase.co';
+const SUPABASE_KEY='your-anon-public-key';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let currentUser=null, selectedAva='😊';
+
+window.addEventListener('DOMContentLoaded',async()=>{
+  const{data:{user}}=await sb.auth.getUser();
+  if(!user){window.location.href='login.html';return;}
+  currentUser=user;
+  const{data}=await sb.from('profiles').select('*').eq('id',user.id).single();
+  if(!data)return;
+  document.getElementById('f-name').value=data.full_name||'';
+  document.getElementById('f-city').value=data.city||'高雄市';
+  document.getElementById('f-bio').value=data.bio||'';
+  if(data.avatar_url){
+    selectedAva=data.avatar_url;
+    document.getElementById('ava-preview').textContent=selectedAva;
+    document.querySelectorAll('.ep').forEach(e=>{
+      e.classList.toggle('sel',e.textContent===selectedAva);
+    });
+  }
+});
+
+function pickAva(el,em){
+  document.querySelectorAll('.ep').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');selectedAva=em;
+  document.getElementById('ava-preview').textContent=em;
+}
+
+async function saveProfile(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){setMsg('請填寫名稱','err');return;}
+  const btn=document.getElementById('save-btn');
+  btn.disabled=true;btn.textContent='儲存中…';
+  const{error}=await sb.from('profiles').update({
+    full_name:name,
+    city:document.getElementById('f-city').value,
+    bio:document.getElementById('f-bio').value.trim(),
+    avatar_url:selectedAva,
+  }).eq('id',currentUser.id);
+  btn.disabled=false;btn.textContent='儲存變更';
+  if(error){setMsg('儲存失敗，請再試一次','err');return;}
+  setMsg('個人資料已更新 ✓','ok');
+  setTimeout(()=>history.back(),1200);
+}
+
+async function deleteAccount(){
+  const btn=document.getElementById('delete-btn');
+  btn.disabled=true;btn.textContent='刪除中…';
+  // 刪除用戶資料（auth 用戶需透過 Supabase Admin API，這裡先刪除 profile）
+  await sb.from('skills').delete().eq('user_id',currentUser.id);
+  await sb.from('profiles').delete().eq('id',currentUser.id);
+  await sb.auth.signOut();
+  localStorage.clear();
+  window.location.href='login.html';
+}
+
+async function submitReport(){
+  const type=document.getElementById('report-type').value;
+  if(!type){alert('請選擇檢舉原因');return;}
+  // 儲存檢舉紀錄（需在 Supabase 建立 reports 資料表）
+  await sb.from('reports').insert({
+    reporter_id:currentUser.id,
+    reason:type,
+    content:document.getElementById('report-content').value.trim(),
+    created_at:new Date().toISOString(),
+  }).select();
+  hideModal('report-modal');
+  setMsg('檢舉已送出，我們會盡快審查 ✓','ok');
+}
+
+function showModal(id){document.getElementById(id).classList.add('show');}
+function hideModal(id){document.getElementById(id).classList.remove('show');}
+function setMsg(msg,type){const e=document.getElementById('save-msg');e.textContent=msg;e.className='msg '+type+' show';showToast(msg);}
+</script>
+<div class="toast" id="toast" style="position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+20px);left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:13px;padding:10px 20px;border-radius:100px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;"></div>
+<script>
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';clearTimeout(window._tt);window._tt=setTimeout(()=>t.style.opacity='0',2400);}
+</script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+{
+  "name": "技遇 JiYu",
+  "short_name": "技遇",
+  "description": "因技相遇，共同成長。在你附近找到想學的技能，用你的技能交換。",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#3D9970",
+  "background_color": "#ffffff",
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-browse.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "label": "瀏覽技能"
+    },
+    {
+      "src": "/screenshot-map.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "label": "地圖模式"
+    }
+  ],
+  "categories": [
+    "education",
+    "social",
+    "lifestyle"
+  ],
+  "shortcuts": [
+    {
+      "name": "瀏覽技能",
+      "url": "/browse",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "發布技能",
+      "url": "/post",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
